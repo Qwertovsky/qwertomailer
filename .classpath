@@ -2,5 +2,12 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="D:/Program_Files/_java/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="D:/Program_Files/_java/javamail-1.4.3/mail.jar"/>
+	<classpathentry kind="lib" path="D:/Program_Files/_java/commons-cli-1.2/commons-cli-1.2.jar" sourcepath="D:/Program_Files/_java/commons-cli-1.2/commons-cli-1.2-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/D:/Program_Files/_java/commons-cli-1.2/commons-cli-1.2-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
