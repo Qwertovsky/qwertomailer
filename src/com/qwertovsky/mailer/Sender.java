@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -17,9 +16,6 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-
-
 
 
 public class Sender
@@ -70,6 +66,7 @@ public class Sender
 			throw new Exception("Recipients list is empty");
 		}
 		//get content from file
+		System.out.println("Get content from EMl file");
 		Session mailSession = Session.getDefaultInstance(new Properties(), null);
 		
 		Object content;
@@ -128,25 +125,28 @@ public class Sender
 		ArrayList<MimeMessage> messages = new ArrayList<MimeMessage>();
 		if(recipientType == Method.PERSON)
 		{
-			for(Address toEmail:emailsTo)
+			System.out.println("Create personal messages");
+			for(Address emailTo:emailsTo)
 			{
 				MimeMessage message = new MimeMessage(session);
-				makeMessage(message, text, contentType, subject, addressFrom);
 				try
 				{
-					message.setRecipient(RecipientType.TO, toEmail);
+					makeMessage(message, text, contentType, subject, addressFrom);
+					message.setRecipient(RecipientType.TO, emailTo);
 				} catch (MessagingException e)
 				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.err.println(e.getMessage());
+					System.err.println("Message not created for "+ emailTo);
+					continue;
 				}
 				messages.add(message);
 			}
 		}
 		else
 		{
+			System.out.println("Create message");
 			MimeMessage message = new MimeMessage(session);
-			makeMessage(message, text, contentType, subject, addressFrom);
+			
 			RecipientType rt = null;
 			if(recipientType == Method.TO)
 				rt = RecipientType.TO;
@@ -156,17 +156,18 @@ public class Sender
 				rt = RecipientType.BCC;
 			try
 			{
+				makeMessage(message, text, contentType, subject, addressFrom);
 				message.setRecipients(rt, (Address[])emailsTo.toArray());
 			} catch (MessagingException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.err.println(e.getMessage());
+				return;
 			}
 			messages.add(message);
 		}
 		
 		//send messages
-		Mailer.logger.info("Отсылаем");
+		System.out.println("Start sending");
 		for(Message message:messages)
 		{
 			try
@@ -174,11 +175,15 @@ public class Sender
 				Transport.send(message);
 			} catch (MessagingException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				StringBuilder sb = new StringBuilder("Error send message to: ");
+				for(Address a:message.getAllRecipients())
+				{
+					sb.append(((InternetAddress)a).getAddress() +", ");
+				}
+				System.err.println(sb.toString());
 			}
 		}
-		Mailer.logger.info("Отправлено письмо");
+		System.out.println("End sending");
 	}
 	//-----------------------------------------------
 	private void makeMessage(MimeMessage message, Object text
