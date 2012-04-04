@@ -1,5 +1,10 @@
 package com.qwertovsky.mailer;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -27,12 +32,12 @@ public class Sender
 	private String hostname;
 	private String charset;
 	private String contentTransferEncoding;
-	private Type recipientType;
+	private Method recipientType;
 	
 	private Properties mailProp;
 	
 	
-	public enum Type {TO, CC, BCC, PERSON};
+	public enum Method {TO, CC, BCC, PERSON};
 
 	public Sender(String smtpHostName, String smtpPort, String smtpUser,
 			String smtpPassword, String hostname)
@@ -51,9 +56,62 @@ public class Sender
 			this.hostname = "";
 	}
 	//---------------------------------------------
-	public int send(String text, String contentType, String subject, String fromEmail
-			, String fromUser, ArrayList<Address> toEmails)
+	public void send(File emlFile, String emailFrom, String personFrom, ArrayList<Address> emailsTo)
+	throws Exception
 	{
+		send(emlFile, null, emailFrom, personFrom, emailsTo);
+	}
+	//---------------------------------------------
+	public void send(File emlFile, String subject, String emailFrom
+			, String personFrom, ArrayList<Address> emailsTo) throws Exception
+	{
+		if(emailsTo.isEmpty())
+		{
+			throw new Exception("Recipients list is empty");
+		}
+		//get content from file
+		Session mailSession = Session.getDefaultInstance(new Properties(), null);
+		
+		Object content;
+		String contentType;
+		try
+		{
+			InputStream isEML = null;
+			isEML = new FileInputStream(emlFile);
+			Message message = new MimeMessage(mailSession, isEML);
+			content = message.getContent();
+			contentType = message.getContentType();
+			if(subject == null)
+				subject = message.getSubject();
+		} catch (FileNotFoundException e)
+		{
+			throw new Exception("EML file not exists");
+		} catch (MessagingException e)
+		{
+			throw e;
+		} catch (IOException e)
+		{
+			throw e;
+		}
+		
+			
+		send(content, contentType, subject, emailFrom, personFrom, emailsTo);
+	}
+	//---------------------------------------------
+	public void send(Object content, String contentType, String subject, String emailFrom
+			, String personFrom, ArrayList<Address> emailsTo) throws Exception
+	{
+		Address addressFrom = new InternetAddress(emailFrom, personFrom, charset);
+		send(content, contentType, subject, addressFrom, emailsTo);
+	}
+	//-----------------------------------------------
+	private void send(Object text, String contentType, String subject, Address addressFrom
+			, ArrayList<Address> emailsTo) throws Exception
+	{
+		if(emailsTo.isEmpty())
+		{
+			throw new Exception("Recipients list is empty");
+		}
 		//set mail Properties
 		mailProp = new Properties();
 		mailProp.put("mail.smtp.host", smtpHostName);
@@ -68,12 +126,12 @@ public class Sender
 		Session session = Session.getInstance(mailProp, null);
 		//create messages
 		ArrayList<MimeMessage> messages = new ArrayList<MimeMessage>();
-		if(recipientType == Type.PERSON)
+		if(recipientType == Method.PERSON)
 		{
-			for(Address toEmail:toEmails)
+			for(Address toEmail:emailsTo)
 			{
 				MimeMessage message = new MimeMessage(session);
-				makeMessage(message, text, contentType, subject, fromEmail, fromUser);
+				makeMessage(message, text, contentType, subject, addressFrom);
 				try
 				{
 					message.setRecipient(RecipientType.TO, toEmail);
@@ -88,17 +146,17 @@ public class Sender
 		else
 		{
 			MimeMessage message = new MimeMessage(session);
-			makeMessage(message, text, contentType, subject, fromEmail, fromUser);
+			makeMessage(message, text, contentType, subject, addressFrom);
 			RecipientType rt = null;
-			if(recipientType == Type.TO)
+			if(recipientType == Method.TO)
 				rt = RecipientType.TO;
-			if(recipientType == Type.CC)
+			if(recipientType == Method.CC)
 				rt = RecipientType.CC;
-			if(recipientType == Type.BCC)
+			if(recipientType == Method.BCC)
 				rt = RecipientType.BCC;
 			try
 			{
-				message.setRecipients(rt, (Address[])toEmails.toArray());
+				message.setRecipients(rt, (Address[])emailsTo.toArray());
 			} catch (MessagingException e)
 			{
 				// TODO Auto-generated catch block
@@ -107,14 +165,8 @@ public class Sender
 			messages.add(message);
 		}
 		
-		if (messages.isEmpty())
-	    {
-	      Mailer.logger.warn("Список адресатов пуст");
-	      return -1;
-	    }
-		
 		//send messages
-		Mailer.logger.trace("Отсылаем");
+		Mailer.logger.info("Отсылаем");
 		for(Message message:messages)
 		{
 			try
@@ -127,31 +179,24 @@ public class Sender
 			}
 		}
 		Mailer.logger.info("Отправлено письмо");
-	    return 0;
 	}
 	//-----------------------------------------------
-	private void makeMessage(MimeMessage message, String text
-			, String contentType, String subject, String emailFrom, String userFrom)
+	private void makeMessage(MimeMessage message, Object text
+			, String contentType, String subject, Address addressFrom) throws MessagingException
 	{
 		if(text == null)
 			text = "";
-		InternetAddress addressFrom = null;
+		
 		try
 		{
-			addressFrom = new InternetAddress(emailFrom, userFrom, charset);
 			message.setFrom(addressFrom);
 			message.setContent(text, contentType);
 			message.setSubject(subject);
 			message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
 			
-		} catch (UnsupportedEncodingException e)
+		}catch (MessagingException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (MessagingException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw e;
 		}
 		
 		
@@ -170,8 +215,8 @@ public class Sender
 	//-----------------------------------------------
 	public void setRecipientType(String recipientType)
 	{
-		Type rt;
-		rt = Type.valueOf(recipientType);
+		Method rt;
+		rt = Method.valueOf(recipientType);
 		this.recipientType = rt;
 		
 	}

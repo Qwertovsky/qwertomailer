@@ -1,10 +1,12 @@
 package com.qwertovsky.mailer;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
@@ -112,9 +114,14 @@ public class Mailer
 							.withDescription("message body file")
 							.hasArg()
 							.create("bodyFile");
+		Option oEMLFile = OptionBuilder.withArgName("file")
+							.withDescription("get content from EML file")
+							.hasArg()
+							.create("bodyEML");
 		OptionGroup ogMessage = new OptionGroup();
 		ogMessage.addOption(oMessage);
 		ogMessage.addOption(oMessageFile);
+		ogMessage.addOption(oEMLFile);
 		
 		Option oContentType = OptionBuilder.withArgName("type")
 							.withDescription("specify content type (default text/plain)")
@@ -130,7 +137,7 @@ public class Mailer
 							.hasArg()
 							.create("subjectFile");
 		OptionGroup ogSubject = new OptionGroup();
-		ogSubject.setRequired(true);
+//		ogSubject.setRequired(true); //not required if emlFile was specified
 		ogSubject.addOption(oSubject);
 		ogSubject.addOption(oSubjectFile);
 		
@@ -145,7 +152,7 @@ public class Mailer
 							.withValueSeparator(':')
 							.create("emailToFile");
 		OptionGroup ogEmailTo = new OptionGroup();
-		ogEmailTo.setRequired(true);
+		ogEmailTo.setRequired(true); 
 		ogEmailTo.addOption(oEmailTo);
 		ogEmailTo.addOption(oEmailToFile);
 		
@@ -206,6 +213,7 @@ public class Mailer
 		String contentTransferEncoding = "8bit";
 		String text = null;
 		String contentType = "text/plain";
+		File emlFile = null;
 		String subject = null;
 		String emailFrom = null;
 		String personFrom = null;
@@ -233,10 +241,42 @@ public class Mailer
 			{
 				String file = commandLine.getOptionValue("bodyFile");
 				File textFile = new File(file);
-				//TODO get text from file
+				
+				//get text from file
+				try
+				{
+					Scanner scanner = new Scanner(textFile, charset);
+	                StringBuilder textBuilder = new StringBuilder();
+	                while(scanner.hasNextLine())
+	                {
+	                    String line = scanner.nextLine();
+	                    textBuilder.append(line);
+	                    textBuilder.append("\n");
+	                }
+	                text = textBuilder.toString();
+				} catch (FileNotFoundException e)
+				{
+					System.out.println("body file not exists");
+					System.exit(1);
+				}catch(Exception e)
+				{
+					e.printStackTrace();
+					System.exit(1);
+				}
+                
+			}
+			else if (commandLine.hasOption("bodyEML"))
+			{
+				emlFile = new File(commandLine.getOptionValue("bodyEML"));
+				if(!emlFile.exists())
+				{
+					System.out.println("EML file not exists");
+					System.exit(1);
+				}
 			}
 			
 			contentType = commandLine.getOptionValue("contentType", "text/plain");
+			contentType = contentType +";charset="+ charset;
 						
 			if(commandLine.hasOption("subject"))
 				subject = commandLine.getOptionValue("subject");
@@ -244,7 +284,29 @@ public class Mailer
 			{
 				String file = commandLine.getOptionValue("subjectFile");
 				File subjectFile = new File(file);
-				//TODO get subject line from file
+				
+				//get subject line from file
+				try
+				{
+					Scanner scanner = new Scanner(subjectFile, charset);
+	                if(scanner.hasNextLine())
+	                	subject = scanner.nextLine();
+	                else
+	                {
+	                	System.out.println("subject file is empty");
+						System.exit(1);
+	                }
+				} catch (FileNotFoundException e)
+				{
+					System.out.println("subject file not exists");
+					System.exit(1);
+				}catch(Exception e)
+				{
+					e.printStackTrace();
+					System.exit(1);
+				}
+                
+                
 			}
 			
 			emailFrom = commandLine.getOptionValue("emailFrom");
@@ -267,10 +329,39 @@ public class Mailer
 			else
 			{
 				String[] values = commandLine.getOptionValues("emailToFile");
+				if(values.length != 2)
+				{
+					System.err.println("specify emails file type and name");
+					System.exit(1);
+				}
 				String type = values[0];
 				String file = values[1];
 				File emailsFile = new File(file);
-				//TODO get emails from file
+				
+				//get emails from file
+				if("text".equalsIgnoreCase(type))
+				{
+					try
+					{
+						Scanner scanner = new Scanner(emailsFile);
+		                while(scanner.hasNextLine())
+		                {
+		                    String email = scanner.nextLine();
+		                    try
+		                    {
+		                    	emailsTo.add(new InternetAddress(email));
+		                    }catch(AddressException ae)
+		                    {
+		                    	
+		                    }
+		                }
+					} catch (FileNotFoundException e)
+					{
+						System.err.println("file with emails not exists");
+						System.exit(1);
+					}
+	                
+				}
 			}
 			
 			recipientType = commandLine.getOptionValue("sendMethod");
@@ -279,7 +370,7 @@ public class Mailer
 		{
 			Mailer.logger.error(pe.getMessage());
 			HelpFormatter helpFormatter = new HelpFormatter();
-			helpFormatter.printHelp("java -jar qwertomailer.jar", options, true);
+			helpFormatter.printHelp("java -jar mailer.jar", options, true);
 			System.exit(1);
 		}
 		
@@ -290,8 +381,16 @@ public class Mailer
 		sender.setRecipientType(recipientType);
 		
 		//send message
-		sender.send(text, contentType, subject, emailFrom, personFrom, emailsTo);
-		
+		try
+		{
+			if(emlFile != null)
+				sender.send(emlFile, subject, emailFrom, personFrom, emailsTo);
+			else 
+				sender.send(text, contentType, subject, emailFrom, personFrom, emailsTo);
+		}catch(Exception e)
+		{
+			System.err.println(e.getMessage());
+		}
 
 	}
 
