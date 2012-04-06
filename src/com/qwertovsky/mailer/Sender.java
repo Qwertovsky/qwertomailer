@@ -12,10 +12,13 @@ import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.ContentType;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.ParseException;
 
 
 public class Sender
@@ -26,9 +29,9 @@ public class Sender
 	private String smtpUser;
 	private String smtpPassword;
 	private String hostname;
-	private String charset;
-	private String contentTransferEncoding;
-	private Method recipientType;
+	private String charset = "UTF-8";
+	private String contentTransferEncoding = "8bit";
+	private Method recipientType = Method.PERSON;
 	
 	private Properties mailProp;
 	
@@ -36,7 +39,7 @@ public class Sender
 	public enum Method {TO, CC, BCC, PERSON};
 
 	public Sender(String smtpHostName, String smtpPort, String smtpUser,
-			String smtpPassword, String hostname)
+			String smtpPassword, String hostname) throws Exception
 	{
 		this.smtpHostName = smtpHostName;
 		this.smtpPort = smtpPort;
@@ -44,6 +47,10 @@ public class Sender
 		this.smtpPassword = smtpPassword;
 		this.hostname = hostname;
 		
+		if(smtpHostName == null || smtpHostName.length() == 0)
+			throw new Exception("SMTP server is not specified");
+		if(smtpPort == null)
+			this.smtpPort = "25";
 		if(smtpUser == null)
 			this.smtpUser = "";
 		if(smtpPassword == null)
@@ -61,9 +68,10 @@ public class Sender
 	public void send(File emlFile, String subject, String emailFrom
 			, String personFrom, ArrayList<Address> emailsTo) throws Exception
 	{
-		if(emailsTo.isEmpty())
+		
+		if(emlFile == null)
 		{
-			throw new Exception("Recipients list is empty");
+			throw new Exception("EML file is null");
 		}
 		//get content from file
 		System.out.println("Get content from EMl file");
@@ -98,6 +106,8 @@ public class Sender
 	public void send(Object content, String contentType, String subject, String emailFrom
 			, String personFrom, ArrayList<Address> emailsTo) throws Exception
 	{
+		if(emailFrom == null || emailFrom.length()==0)
+			throw new Exception("Bad email in FROM");
 		Address addressFrom = new InternetAddress(emailFrom, personFrom, charset);
 		send(content, contentType, subject, addressFrom, emailsTo);
 	}
@@ -105,10 +115,26 @@ public class Sender
 	private void send(Object text, String contentType, String subject, Address addressFrom
 			, ArrayList<Address> emailsTo) throws Exception
 	{
-		if(emailsTo.isEmpty())
+		if(emailsTo == null || emailsTo.isEmpty())
 		{
 			throw new Exception("Recipients list is empty");
 		}
+		if(text == null || text.equals(new String("")))
+		{
+			throw new Exception("Bad content");
+		}
+		if(contentType == null || contentType.length() == 0)
+		{
+			throw new Exception("Bad ContentType");
+		}
+		try
+		{
+			ContentType ct = new ContentType(contentType);
+		}catch(ParseException pe)
+		{
+			throw new Exception("Bad ContentType: "+ pe.getMessage());
+		}
+		
 		//set mail Properties
 		mailProp = new Properties();
 		mailProp.put("mail.smtp.host", smtpHostName);
@@ -121,6 +147,15 @@ public class Sender
 		
 		//create session
 		Session session = Session.getInstance(mailProp, null);
+		try
+		{
+			Transport transport = session.getTransport();
+			transport.connect();
+			transport.close();
+		}catch(NoSuchProviderException nspe)
+		{
+			throw nspe;
+		}
 		//create messages
 		ArrayList<MimeMessage> messages = new ArrayList<MimeMessage>();
 		if(recipientType == Method.PERSON)
@@ -199,30 +234,31 @@ public class Sender
 			message.setSubject(subject);
 			message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
 			
-		}catch (MessagingException e)
+		}
+		catch (MessagingException e)
 		{
 			throw e;
 		}
-		
-		
-		
 	}
 	//-----------------------------------------------
 	public void setCharset(String charset)
 	{
-		this.charset = charset;
+		if(charset != null)
+			this.charset = charset;
 	}
 	//-----------------------------------------------
 	public void setContentTransferEncoding(String contentTransferEncoding)
 	{
-		this.contentTransferEncoding = contentTransferEncoding;
+		if(contentTransferEncoding != null)
+			this.contentTransferEncoding = contentTransferEncoding;
 	}
 	//-----------------------------------------------
 	public void setRecipientType(String recipientType)
 	{
-		Method rt;
-		rt = Method.valueOf(recipientType);
-		this.recipientType = rt;
-		
+		if(recipientType != null)
+		{
+			Method sendMethod = Method.valueOf(recipientType.toUpperCase());
+			this.recipientType = sendMethod;
+		}
 	}
 }
