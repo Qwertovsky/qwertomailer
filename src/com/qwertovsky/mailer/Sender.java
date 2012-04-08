@@ -13,6 +13,7 @@ import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.ContentType;
@@ -49,7 +50,7 @@ public class Sender
 		
 		if(smtpHostName == null || smtpHostName.length() == 0)
 			throw new Exception("SMTP server is not specified");
-		if(smtpPort == null)
+		if(smtpPort == null || smtpPort.length() == 0)
 			this.smtpPort = "25";
 		if(smtpUser == null)
 			this.smtpUser = "";
@@ -129,7 +130,7 @@ public class Sender
 		}
 		try
 		{
-			ContentType ct = new ContentType(contentType);
+			new ContentType(contentType);
 		}catch(ParseException pe)
 		{
 			throw new Exception("Bad ContentType: "+ pe.getMessage());
@@ -140,13 +141,19 @@ public class Sender
 		mailProp.put("mail.smtp.host", smtpHostName);
 		mailProp.put("mail.smtp.port", smtpPort);
 		mailProp.put("mail.smtp.localhost", hostname);
-		mailProp.put("mail.user", smtpUser);
-		mailProp.put("mail.password", smtpPassword);
 		mailProp.put("mail.mime.charset", charset);
 		mailProp.put("mail.transport.protocol", "smtp");
 		
+		mailProp.put("mail.smtp.auth", "true");
+		mailProp.put("mail.smtp.starttls.enable", "true");
+		mailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+		
 		//create session
-		Session session = Session.getInstance(mailProp, null);
+		Session session = Session.getInstance(mailProp, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication(smtpUser,smtpPassword);
+			}
+		});
 		try
 		{
 			Transport transport = session.getTransport();
@@ -215,7 +222,8 @@ public class Sender
 				{
 					sb.append(((InternetAddress)a).getAddress() +", ");
 				}
-				System.err.println(sb.toString());
+				System.err.println(sb.toString() + e.getMessage());
+				
 			}
 		}
 		System.out.println("End sending");
