@@ -1,6 +1,6 @@
 package com.qwertovsky.mailer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,13 +11,10 @@ import javax.mail.Address;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import com.qwertovsky.mailer.Sender.Method;
 
 @RunWith(value = Parameterized.class)
 public class SenderTest
@@ -39,7 +36,7 @@ public class SenderTest
 	String hostname;
 	
 	@Parameters
-	public static Collection parameters() throws AddressException
+	public static Collection<Object[]> parameters() throws AddressException
 	{
 		String validAddress1 = "address";
 		String validAddress2 = "address";
@@ -74,6 +71,7 @@ public class SenderTest
 				,
 				{"test.eml", "", "text/plain", "", "from", "", to, "smtp.mail.ru"
 					, "", "", "", "", "", "", ""} //Bad content
+				
 				}); 
 	}
 	
@@ -132,13 +130,13 @@ public class SenderTest
 				return;
 			if("Unknown SMTP host: smtp.host.rus".equals(e.getMessage()))
 				return;
-			if("Could not connect to SMTP host: mail.ru, port: 80".equals(e.getMessage()))
+			if(e.getMessage() != null && e.getMessage().startsWith("Could not connect to SMTP host:"))
 				return;
 			if("Exception reading response".equals(e.getMessage()))
 				return;
 			if("Bad email in FROM".equals(e.getMessage()))
 				return;
-			if(e.getMessage().startsWith("Bad ContentType"))
+			if(e.getMessage() != null && e.getMessage().startsWith("Bad ContentType"))
 				return;
 			if("Bad content".equals(e.getMessage()))
 				return;
@@ -182,13 +180,13 @@ public class SenderTest
 				return;
 			if("Unknown SMTP host: smtp.host.rus".equals(e.getMessage()))
 				return;
-			if("Could not connect to SMTP host: mail.ru, port: 80".equals(e.getMessage()))
+			if(e.getMessage() != null && e.getMessage().startsWith("Could not connect to SMTP host:"))
 				return;
 			if("Exception reading response".equals(e.getMessage()))
 				return;
 			if("Bad email in FROM".equals(e.getMessage()))
 				return;
-			if(e.getMessage().startsWith("Bad ContentType"))
+			if(e.getMessage() != null && e.getMessage().startsWith("Bad ContentType"))
 				return;
 			if("Bad content".equals(e.getMessage()))
 				return;
@@ -230,13 +228,13 @@ public class SenderTest
 				return;
 			if("Unknown SMTP host: smtp.host.rus".equals(e.getMessage()))
 				return;
-			if("Could not connect to SMTP host: mail.ru, port: 80".equals(e.getMessage()))
+			if(e.getMessage() != null && e.getMessage().startsWith("Could not connect to SMTP host:"))
 				return;
 			if("Exception reading response".equals(e.getMessage()))
 				return;
 			if("Bad email in FROM".equals(e.getMessage()))
 				return;
-			if(e.getMessage().startsWith("Bad ContentType"))
+			if(e.getMessage() != null && e.getMessage().startsWith("Bad ContentType"))
 				return;
 			if("Bad content".equals(e.getMessage()))
 				return;
