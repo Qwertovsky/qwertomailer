@@ -233,7 +233,7 @@ public class Sender
 			, String contentType, String subject, Address addressFrom) throws MessagingException
 	{
 		if(text == null)
-			text = "";
+			text = " ";
 		
 		try
 		{
