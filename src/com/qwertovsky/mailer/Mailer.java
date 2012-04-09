@@ -136,7 +136,6 @@ public class Mailer
 		}
 		
 		contentType = commandLine.getOptionValue("contentType", "text/plain");
-		contentType = contentType +";charset="+ charset;
 					
 		if(commandLine.hasOption("subject"))
 			subject = commandLine.getOptionValue("subject");

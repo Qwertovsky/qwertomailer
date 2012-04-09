@@ -232,16 +232,18 @@ public class Sender
 	private void makeMessage(MimeMessage message, Object text
 			, String contentType, String subject, Address addressFrom) throws MessagingException
 	{
+		//content can't be empty
 		if(text == null)
 			text = " ";
-		
+		//add charset 
+		if(!contentType.contains("charset="))
+			contentType = contentType + ";charset=" + charset;
 		try
 		{
 			message.setFrom(addressFrom);
 			message.setContent(text, contentType);
 			message.setSubject(subject);
 			message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
-			
 		}
 		catch (MessagingException e)
 		{
