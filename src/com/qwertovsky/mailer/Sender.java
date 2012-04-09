@@ -21,6 +21,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.ParseException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Sender
 {
@@ -38,6 +40,9 @@ public class Sender
 	
 	
 	public enum Method {TO, CC, BCC, PERSON};
+	
+	final Logger logger = LoggerFactory.getLogger(Sender.class);
+
 
 	public Sender(String smtpHostName, String smtpPort, String smtpUser,
 			String smtpPassword, String hostname) throws Exception
@@ -74,8 +79,8 @@ public class Sender
 		{
 			throw new Exception("EML file is null");
 		}
-		//get content from file
-		System.out.println("Get content from EMl file");
+		//get content, contentType and subject  from file
+		logger.info("Get content from EML file");
 		Session mailSession = Session.getDefaultInstance(new Properties(), null);
 		
 		Object content;
@@ -109,6 +114,7 @@ public class Sender
 	{
 		if(emailFrom == null || emailFrom.length()==0)
 			throw new Exception("Bad email in FROM");
+		//create address FROM
 		Address addressFrom = new InternetAddress(emailFrom, personFrom, charset);
 		send(content, contentType, subject, addressFrom, emailsTo);
 	}
@@ -128,6 +134,7 @@ public class Sender
 		{
 			throw new Exception("Bad ContentType");
 		}
+		//check contentType
 		try
 		{
 			new ContentType(contentType);
@@ -149,11 +156,16 @@ public class Sender
 		mailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 		
 		//create session
-		Session session = Session.getInstance(mailProp, new javax.mail.Authenticator() {
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(smtpUser,smtpPassword);
-			}
-		});
+		Session session = Session.getInstance(mailProp
+				, new javax.mail.Authenticator()
+					{
+						protected PasswordAuthentication getPasswordAuthentication()
+						{
+							return new PasswordAuthentication(smtpUser,smtpPassword);
+						}
+					}
+				);
+		//check mail server
 		try
 		{
 			Transport transport = session.getTransport();
@@ -163,11 +175,12 @@ public class Sender
 		{
 			throw nspe;
 		}
+		
 		//create messages
 		ArrayList<MimeMessage> messages = new ArrayList<MimeMessage>();
 		if(recipientType == Method.PERSON)
 		{
-			System.out.println("Create personal messages");
+			logger.info("Create personal messages");
 			for(Address emailTo:emailsTo)
 			{
 				MimeMessage message = new MimeMessage(session);
@@ -177,8 +190,7 @@ public class Sender
 					message.setRecipient(RecipientType.TO, emailTo);
 				} catch (MessagingException e)
 				{
-					System.err.println(e.getMessage());
-					System.err.println("Message not created for "+ emailTo);
+					logger.warn("Message is not created for "+ emailTo + "("+e.getMessage()+")");
 					continue;
 				}
 				messages.add(message);
@@ -186,7 +198,7 @@ public class Sender
 		}
 		else
 		{
-			System.out.println("Create message");
+			logger.info("Create message");
 			MimeMessage message = new MimeMessage(session);
 			
 			RecipientType rt = null;
@@ -203,13 +215,14 @@ public class Sender
 			} catch (MessagingException e)
 			{
 				System.err.println(e.getMessage());
+				logger.error("Message is not created:" + e.getMessage());
 				return;
 			}
 			messages.add(message);
 		}
 		
 		//send messages
-		System.out.println("Start sending");
+		logger.info("Start sending");
 		for(Message message:messages)
 		{
 			try
@@ -218,15 +231,15 @@ public class Sender
 			} catch (MessagingException e)
 			{
 				StringBuilder sb = new StringBuilder("Error send message to: ");
+				//append all recipients to message
 				for(Address a:message.getAllRecipients())
 				{
 					sb.append(((InternetAddress)a).getAddress() +", ");
 				}
-				System.err.println(sb.toString() + e.getMessage());
-				
+				logger.warn(sb.toString() + e.getMessage());
 			}
 		}
-		System.out.println("End sending");
+		logger.info("End sending");
 	}
 	//-----------------------------------------------
 	private void makeMessage(MimeMessage message, Object text
