@@ -1,0 +1,99 @@
+X-Account-Key: account1
+X-UIDL: UID21669-1283491850
+X-Mozilla-Status: 0001
+X-Mozilla-Status2: 10000000
+X-Mozilla-Keys:                                                                                 
+Message-ID: <4F8567F8.8080208>
+Date: Wed, 11 Apr 2012 15:16:08 +0400
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko/20120327 Thunderbird/11.0.1
+MIME-Version: 1.0
+Subject: multipart
+Content-Type: multipart/mixed;
+ boundary="------------090303020604010006070604"
+
+This is a multi-part message in MIME format.
+--------------090303020604010006070604
+Content-Type: multipart/alternative;
+ boundary="------------000102070805030703050306"
+
+
+--------------000102070805030703050306
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: 7bit
+
+text message
+
+
+--------------000102070805030703050306
+Content-Type: text/html; charset=windows-1251
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1251"
+      http-equiv="Content-Type">
+    <title>multipart</title>
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    html message<br>
+    <br>
+  </body>
+</html>
+
+--------------000102070805030703050306--
+
+--------------090303020604010006070604
+Content-Type: text/plain; charset=windows-1251;
+ name="ReadMessage.java"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ReadMessage.java"
+
+package com.qwertovsky.mailer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.mail.BodyPart;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+
+public class ReadMessage
+{
+
+	/**
+	 * @param args
+	 * @throws MessagingException 
+	 * @throws IOException 
+	 */
+	public static void main(String[] args) throws MessagingException, IOException
+	{
+		Session session = Session.getDefaultInstance(new Properties());
+		InputStream is = new FileInputStream(new File("multipart.eml"));
+		Message message = new MimeMessage(session, is);
+		Object mixed = message.getContent();
+		System.out.println(((Multipart)mixed).getContentType());
+		Object alternative = ((Multipart)mixed).getBodyPart(0);
+		System.out.println(((Multipart)alternative).getContentType());
+		BodyPart text = ((Multipart)alternative).getBodyPart(0);
+		BodyPart html = ((Multipart)alternative).getBodyPart(1);
+		System.out.println(text.getContentType());
+		System.out.println(html.getContentType());
+		BodyPart attachment = ((Multipart)mixed).getBodyPart(1);
+		System.out.println(attachment.getContentType());
+
+	}
+
+}
+
+--------------090303020604010006070604--
+
+
+
+

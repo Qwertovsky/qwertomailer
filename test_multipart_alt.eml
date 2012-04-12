@@ -1,0 +1,38 @@
+X-Account-Key: account1
+X-UIDL: UID21669-1283491850
+X-Mozilla-Status: 0001
+X-Mozilla-Status2: 10000000
+X-Mozilla-Keys:                                                                                 
+Message-ID: <4F8567F8.8080208>
+Date: Wed, 11 Apr 2012 15:16:08 +0400
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko/20120327 Thunderbird/11.0.1
+MIME-Version: 1.0
+Subject: multipart
+Content-Type: multipart/alternative;
+ boundary="------------000102070805030703050306"
+
+
+--------------000102070805030703050306
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: 7bit
+
+text message
+
+
+--------------000102070805030703050306
+Content-Type: text/html; charset=windows-1251
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1251"
+      http-equiv="Content-Type">
+    <title>multipart</title>
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    html message<br>
+    <br>
+  </body>
+</html>
+
+--------------000102070805030703050306--
