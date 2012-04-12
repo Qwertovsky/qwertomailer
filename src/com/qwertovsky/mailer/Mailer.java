@@ -157,17 +157,28 @@ public class Mailer
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
-		sender.setCharset(charset);
-		sender.setContentTransferEncoding(contentTransferEncoding);
 		sender.setRecipientType(recipientType);
+		
+		//create message
+		MailMessage message = null;
+		try
+		{
+			if(emlFile != null)
+				message = new MailMessage(emlFile);
+			else
+				message = new MailMessage(text,contentType, subject, charset);
+			message.setContentTransferEncoding(contentTransferEncoding);
+			message.setAddressFrom(personFrom, emailFrom, charset);
+		} catch (Exception e)
+		{
+			logger.error(e.getMessage());
+			System.err.println(e.getMessage());
+		}
 		
 		//send message
 		try
 		{
-			if(emlFile != null)
-				sender.send(emlFile, subject, emailFrom, personFrom, emailsTo);
-			else 
-				sender.send(text, contentType, subject, emailFrom, personFrom, emailsTo);
+			sender.send(message, emailsTo);
 		}catch(Exception e)
 		{
 			logger.error(e.getMessage());
