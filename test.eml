@@ -13,4 +13,7 @@ X-Enigmail-Version: 1.4
 Content-Type: text/html; charset=windows-1251
 Content-Transfer-Encoding: 8bit
 
-<b>test message (тестовое сообщение)</b>
+<html>
+	<b>test message (тестовое сообщение)</b>
+	<img src="../QwertoMailer\test.png" />
+</html>

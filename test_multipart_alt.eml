@@ -24,15 +24,8 @@ Content-Type: text/html; charset=windows-1251
 Content-Transfer-Encoding: 7bit
 
 <html>
-  <head>
-    <meta content="text/html; charset=windows-1251"
-      http-equiv="Content-Type">
-    <title>multipart</title>
-  </head>
-  <body bgcolor="#FFFFFF" text="#000000">
-    html message<br>
-    <br>
-  </body>
+	<b>test message (тестовое сообщение)</b>
+	<img src="test.png" />
 </html>
 
 --------------000102070805030703050306--

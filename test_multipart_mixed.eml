@@ -29,15 +29,8 @@ Content-Type: text/html; charset=windows-1251
 Content-Transfer-Encoding: 7bit
 
 <html>
-  <head>
-    <meta content="text/html; charset=windows-1251"
-      http-equiv="Content-Type">
-    <title>multipart</title>
-  </head>
-  <body bgcolor="#FFFFFF" text="#000000">
-    html message<br>
-    <br>
-  </body>
+	<b>test message (тестовое сообщение)</b>
+	<img src="test.png" />
 </html>
 
 --------------000102070805030703050306--
@@ -79,7 +72,7 @@ public class ReadMessage
 		Message message = new MimeMessage(session, is);
 		Object mixed = message.getContent();
 		System.out.println(((Multipart)mixed).getContentType());
-		Object alternative = ((Multipart)mixed).getBodyPart(0);
+		Object alternative = ((Multipart)mixed).getBodyPart(0).getContent();
 		System.out.println(((Multipart)alternative).getContentType());
 		BodyPart text = ((Multipart)alternative).getBodyPart(0);
 		BodyPart html = ((Multipart)alternative).getBodyPart(1);

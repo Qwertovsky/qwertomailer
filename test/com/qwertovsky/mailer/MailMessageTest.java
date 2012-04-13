@@ -71,7 +71,7 @@ public class MailMessageTest
 		{
 			MailMessage message = new MailMessage(file4);
 			//data from file
-			if(!message.getContent().equals("<b>test message (тестовое сообщение)</b>"))
+			if(!((String)message.getContent()).startsWith("<html>"))
 				fail("incorrect content");
 			if(!message.getCharset().equals("windows-1251"))
 				fail("incorrect charset");
@@ -420,5 +420,130 @@ public class MailMessageTest
 			e.printStackTrace();
 		}
 	}
-
+	
+	@Test
+	public void testAddInlineAttachment()
+	{
+		/*
+		 * -related
+		 * \-html (index 0)
+		 * |-attachment (index 1)
+		 */
+		try
+		{
+			MailMessage message = new MailMessage(new File("test.eml"));
+			String cid = message.addInlineAttachment("../QwertoMailer\\test.png");
+			Object related = message.getContent();
+			if(related instanceof Multipart
+					&& ((Multipart)related).getContentType().startsWith("multipart/related"))
+			{
+				BodyPart htmlPart = ((Multipart)related).getBodyPart(0);
+				if(!htmlPart.getContentType().startsWith("text/html"))
+						fail("incorrect addInlineAttachments");
+				String html = (String) htmlPart.getContent();
+				if(!html.contains("\"cid:" + cid +"\""))
+					fail("incorrect addInlineAttachments");
+				BodyPart file = ((Multipart)related).getBodyPart(1);
+				if(!file.getFileName().equals("test.png"))
+						fail("incorrect addInlineAttachments");
+			}
+			else
+				fail("incorrect addInlineAttachments");;
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect addInlineAttachments");
+		}
+		//--------------------
+		/*
+		 * -alternative 
+		 * 	\-plain
+		 * 	|-related
+		 * 			\-html
+		 * 			|-attachment
+		 * 
+		 */
+		try
+		{
+			MailMessage message = new MailMessage(new File("test_multipart_alt.eml"));
+			String cid = message.addInlineAttachment("test.png");
+			Object alternative = message.getContent();
+			if(alternative instanceof Multipart
+					&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
+			{
+				Object related = ((Multipart)alternative).getBodyPart(1).getContent();
+				if(related instanceof Multipart
+						&& ((Multipart)related).getContentType().startsWith("multipart/related"))
+				{
+					BodyPart htmlPart = ((Multipart)related).getBodyPart(0);
+					if(!htmlPart.getContentType().startsWith("text/html"))
+							fail("incorrect addInlineAttachments");
+					String html = (String) htmlPart.getContent();
+					if(!html.contains("\"cid:" + cid +"\""))
+						fail("incorrect addInlineAttachments");
+					BodyPart file = ((Multipart)related).getBodyPart(1);
+					if(!file.getFileName().equals("test.png"))
+						fail("incorrect addInlineAttachments");
+				}
+				else
+					fail("incorrect addInlineAttachments");
+			}
+			else
+				fail("incorrect addInlineAttachments");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect addInlineAttachments");
+		}
+		//--------------------
+		/*
+		 * -mixed
+		 * \-alternative 
+		 * 		\-plain
+		 * 		|-related
+		 * 			\-html
+		 * 			|-attachment
+		 * |-attachment (index 1) 
+		 * 
+		 */
+		try
+		{
+			MailMessage message = new MailMessage(new File("test_multipart_mixed.eml"));
+			String cid = message.addInlineAttachment("test.png");
+			Object mixed = message.getContent();
+			if(mixed instanceof Multipart
+					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
+			{
+				Object alternative = ((Multipart)mixed).getBodyPart(0).getContent();
+				if(alternative instanceof Multipart
+						&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
+				{
+					Object related = ((Multipart)alternative).getBodyPart(1).getContent();
+					if(related instanceof Multipart
+							&& ((Multipart)related).getContentType().startsWith("multipart/related"))
+					{
+						BodyPart htmlPart = ((Multipart)related).getBodyPart(0);
+						if(!htmlPart.getContentType().startsWith("text/html"))
+								fail("incorrect addInlineAttachments");
+						String html = (String) htmlPart.getContent();
+						if(!html.contains("\"cid:" + cid +"\""))
+							fail("incorrect addInlineAttachments");
+						BodyPart file = ((Multipart)related).getBodyPart(1);
+						if(!file.getFileName().equals("test.png"))
+							fail("incorrect addInlineAttachments");
+					}
+					else
+						fail("incorrect addInlineAttachments");
+				}
+				else
+					fail("incorrect addInlineAttachments");
+			}
+			else
+				fail("incorrect addInlineAttachments");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect addInlineAttachments");
+		}
+	}
 }
