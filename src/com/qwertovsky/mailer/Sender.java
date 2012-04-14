@@ -1,27 +1,34 @@
 package com.qwertovsky.mailer;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.NoSuchProviderException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.ContentType;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.ParseException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Send messages.<br \>
+ * Contain setting for connect to mail server: server host, server port, user, password.<br \>
+ * Contain setting, that same for many messages: recipientType.
+ * @author Qwertovsky
+ *
+ */
 public class Sender
 {
 
@@ -30,14 +37,15 @@ public class Sender
 	private String smtpUser;
 	private String smtpPassword;
 	private String hostname;
-	private String charset = "UTF-8";
-	private String contentTransferEncoding = "8bit";
 	private Method recipientType = Method.PERSON;
 	
 	private Properties mailProp;
 	
 	
 	public enum Method {TO, CC, BCC, PERSON};
+	
+	final Logger logger = LoggerFactory.getLogger(Sender.class);
+
 
 	public Sender(String smtpHostName, String smtpPort, String smtpUser,
 			String smtpPassword, String hostname) throws Exception
@@ -59,81 +67,18 @@ public class Sender
 		if(hostname == null)
 			this.hostname = "";
 	}
-	//---------------------------------------------
-	public void send(File emlFile, String emailFrom, String personFrom, ArrayList<Address> emailsTo)
-	throws Exception
-	{
-		send(emlFile, null, emailFrom, personFrom, emailsTo);
-	}
-	//---------------------------------------------
-	public void send(File emlFile, String subject, String emailFrom
-			, String personFrom, ArrayList<Address> emailsTo) throws Exception
-	{
 		
-		if(emlFile == null)
-		{
-			throw new Exception("EML file is null");
-		}
-		//get content from file
-		System.out.println("Get content from EMl file");
-		Session mailSession = Session.getDefaultInstance(new Properties(), null);
-		
-		Object content;
-		String contentType;
-		try
-		{
-			InputStream isEML = null;
-			isEML = new FileInputStream(emlFile);
-			Message message = new MimeMessage(mailSession, isEML);
-			content = message.getContent();
-			contentType = message.getContentType();
-			if(subject == null)
-				subject = message.getSubject();
-		} catch (FileNotFoundException e)
-		{
-			throw new Exception("EML file not exists");
-		} catch (MessagingException e)
-		{
-			throw e;
-		} catch (IOException e)
-		{
-			throw e;
-		}
-		
-			
-		send(content, contentType, subject, emailFrom, personFrom, emailsTo);
-	}
-	//---------------------------------------------
-	public void send(Object content, String contentType, String subject, String emailFrom
-			, String personFrom, ArrayList<Address> emailsTo) throws Exception
-	{
-		if(emailFrom == null || emailFrom.length()==0)
-			throw new Exception("Bad email in FROM");
-		Address addressFrom = new InternetAddress(emailFrom, personFrom, charset);
-		send(content, contentType, subject, addressFrom, emailsTo);
-	}
 	//-----------------------------------------------
-	private void send(Object text, String contentType, String subject, Address addressFrom
-			, ArrayList<Address> emailsTo) throws Exception
+	public void send(MailMessage mailMessage, List<Address> emailsTo) throws Exception
 	{
+		String charset = mailMessage.getCharset();
+		Address from = mailMessage.getAddressFrom();
+		if(from == null)
+			throw new Exception("Bad email in FROM");
+	
 		if(emailsTo == null || emailsTo.isEmpty())
 		{
 			throw new Exception("Recipients list is empty");
-		}
-		if(text == null || text.equals(new String("")))
-		{
-			throw new Exception("Bad content");
-		}
-		if(contentType == null || contentType.length() == 0)
-		{
-			throw new Exception("Bad ContentType");
-		}
-		try
-		{
-			new ContentType(contentType);
-		}catch(ParseException pe)
-		{
-			throw new Exception("Bad ContentType: "+ pe.getMessage());
 		}
 		
 		//set mail Properties
@@ -143,17 +88,24 @@ public class Sender
 		mailProp.put("mail.smtp.localhost", hostname);
 		mailProp.put("mail.mime.charset", charset);
 		mailProp.put("mail.transport.protocol", "smtp");
+		mailProp.put("mail.smtp.connectiontimeout","5000");
+		mailProp.put("mail.smtp.timeout","5000");
 		
 		mailProp.put("mail.smtp.auth", "true");
 		mailProp.put("mail.smtp.starttls.enable", "true");
 		mailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 		
 		//create session
-		Session session = Session.getInstance(mailProp, new javax.mail.Authenticator() {
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(smtpUser,smtpPassword);
-			}
-		});
+		Session session = Session.getInstance(mailProp
+				, new javax.mail.Authenticator()
+					{
+						protected PasswordAuthentication getPasswordAuthentication()
+						{
+							return new PasswordAuthentication(smtpUser,smtpPassword);
+						}
+					}
+				);
+		//check mail server
 		try
 		{
 			Transport transport = session.getTransport();
@@ -163,22 +115,22 @@ public class Sender
 		{
 			throw nspe;
 		}
+		
 		//create messages
 		ArrayList<MimeMessage> messages = new ArrayList<MimeMessage>();
 		if(recipientType == Method.PERSON)
 		{
-			System.out.println("Create personal messages");
+			logger.info("Create personal messages");
 			for(Address emailTo:emailsTo)
 			{
 				MimeMessage message = new MimeMessage(session);
 				try
 				{
-					makeMessage(message, text, contentType, subject, addressFrom);
+					makeMessage(message, mailMessage);
 					message.setRecipient(RecipientType.TO, emailTo);
 				} catch (MessagingException e)
 				{
-					System.err.println(e.getMessage());
-					System.err.println("Message not created for "+ emailTo);
+					logger.warn("Message is not created for "+ emailTo + "("+e.getMessage()+")");
 					continue;
 				}
 				messages.add(message);
@@ -186,7 +138,7 @@ public class Sender
 		}
 		else
 		{
-			System.out.println("Create message");
+			logger.info("Create message");
 			MimeMessage message = new MimeMessage(session);
 			
 			RecipientType rt = null;
@@ -198,67 +150,66 @@ public class Sender
 				rt = RecipientType.BCC;
 			try
 			{
-				makeMessage(message, text, contentType, subject, addressFrom);
+				makeMessage(message, mailMessage);
 				message.setRecipients(rt, (Address[])emailsTo.toArray());
 			} catch (MessagingException e)
 			{
 				System.err.println(e.getMessage());
+				logger.error("Message is not created:" + e.getMessage());
 				return;
 			}
 			messages.add(message);
 		}
 		
 		//send messages
-		System.out.println("Start sending");
+		logger.info("Start sending");
+		int i = 0;
 		for(Message message:messages)
 		{
 			try
 			{
-				Transport.send(message);
+//				Transport.send(message);
+				File file = new File(i+".eml");
+				message.writeTo(new FileOutputStream(file));
+				i++;
 			} catch (MessagingException e)
 			{
 				StringBuilder sb = new StringBuilder("Error send message to: ");
+				//append all recipients to message
 				for(Address a:message.getAllRecipients())
 				{
 					sb.append(((InternetAddress)a).getAddress() +", ");
 				}
-				System.err.println(sb.toString() + e.getMessage());
-				
+				logger.warn(sb.toString() + e.getMessage());
 			}
 		}
-		System.out.println("End sending");
+		logger.info("End sending");
 	}
 	//-----------------------------------------------
-	private void makeMessage(MimeMessage message, Object text
-			, String contentType, String subject, Address addressFrom) throws MessagingException
+	private void makeMessage(MimeMessage message, MailMessage mailMessage) throws MessagingException
 	{
-		if(text == null)
-			text = "";
+		Object content = mailMessage.getContent();
+		String contentType = null;
+		if(content instanceof Multipart)
+			contentType = ((Multipart)content).getContentType();
+		else
+			contentType = mailMessage.getContentType();
+		Address from = mailMessage.getAddressFrom();
+		String subject = mailMessage.getSubject();
+		String charset = mailMessage.getCharset();
+		String contentTransferEncoding = mailMessage.getContentTransferEncoding();
 		
 		try
 		{
-			message.setFrom(addressFrom);
-			message.setContent(text, contentType);
-			message.setSubject(subject);
+			message.setFrom(from);
+			message.setContent(content, contentType);
+			message.setSubject(subject, charset);
 			message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
-			
 		}
 		catch (MessagingException e)
 		{
 			throw e;
 		}
-	}
-	//-----------------------------------------------
-	public void setCharset(String charset)
-	{
-		if(charset != null)
-			this.charset = charset;
-	}
-	//-----------------------------------------------
-	public void setContentTransferEncoding(String contentTransferEncoding)
-	{
-		if(contentTransferEncoding != null)
-			this.contentTransferEncoding = contentTransferEncoding;
 	}
 	//-----------------------------------------------
 	public void setRecipientType(String recipientType)

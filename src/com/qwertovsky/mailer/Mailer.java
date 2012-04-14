@@ -3,8 +3,6 @@ package com.qwertovsky.mailer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -21,59 +19,39 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.log4j.FileAppender;
+import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-
-
 
 public class Mailer
 {
 	public static Logger logger = Logger.getLogger("com.qwertovsky.mailer");
 	
-	static class Log4jStream extends PrintStream
-	{
-		boolean err = false;
-		public Log4jStream(OutputStream out)
-		{
-			super(out);
-			if(out.equals(System.err))
-				err = true;
-		}
-
-		@Override
-		public void print(String string)
-		{
-			if(err)
-				logger.error(string);
-			else logger.info(string);
-		}
-		@Override
-		public  void print(Object object)
-		{
-			print(object.toString());
-		}
-	}
+	
 	//--------------------------------------------
 	public static void main(String[] args)
 	{
-		//настраиваем логирование
+		//logger configuration
 		String pattern = "[%d{yyyy-MM-dd HH:mm:ss} %-4r][%-5p] %m%n";
 	    PatternLayout layout = new PatternLayout(pattern);
-	    FileAppender appender=null; //для общего лога
-	     //по каждому файлу
-		try {
-			appender = new FileAppender(layout, "qwertomailer.log", false);
-		} catch (IOException e1) {
-			e1.printStackTrace();
+	    //file will be rolled over every day
+	    DailyRollingFileAppender appender=null;
+	    try
+		{
+			appender = new DailyRollingFileAppender(layout, "qwertomailer.log", "'.'yyyy-MM-dd'.log'");
+		} catch (IOException e)
+		{
+			logger.error(e.getMessage());
+			return;
 		}
 	    logger.addAppender(appender);
 	    logger.setLevel(Level.INFO);
-		System.setOut(new Log4jStream(System.out));
-		System.setErr(new Log4jStream(System.err));
 		
-		//options
+		logger.info("---------------------------------------");
+		logger.info("Program started");
+		
+	    //options
 		Options options = createOptions();
 		
 		//parse parameters
@@ -101,7 +79,7 @@ public class Mailer
 			commandLine = parser.parse(options, args, true);
 		}catch(ParseException pe)
 		{
-			Mailer.logger.error(pe.getMessage());
+			logger.error(pe.getMessage());
 			HelpFormatter helpFormatter = new HelpFormatter();
 			helpFormatter.printHelp("java -jar mailer.jar", options, true);
 			System.exit(1);
@@ -109,13 +87,10 @@ public class Mailer
 			
 		smtpHost = commandLine.getOptionValue("smtpHost");
 		smtpPort = commandLine.getOptionValue("smtpPort", "25");
-					
 		smtpUser = commandLine.getOptionValue("smtpUser");
 		smtpPassword = commandLine.getOptionValue("smtpPassword");
 		hostname = commandLine.getOptionValue("hostname");
-		
 		charset = commandLine.getOptionValue("charset", "UTF-8");
-					
 		contentTransferEncoding = commandLine.getOptionValue("mimeTransport", "8bit");
 		
 		if(commandLine.hasOption("body"))
@@ -130,13 +105,13 @@ public class Mailer
 			emlFile = new File(commandLine.getOptionValue("bodyEML"));
 			if(!emlFile.exists())
 			{
-				System.out.println("EML file not exists");
+				logger.error("EML file not exists");
+				System.err.println("EML file not exists");
 				System.exit(1);
 			}
 		}
 		
 		contentType = commandLine.getOptionValue("contentType", "text/plain");
-		contentType = contentType +";charset="+ charset;
 					
 		if(commandLine.hasOption("subject"))
 			subject = commandLine.getOptionValue("subject");
@@ -159,7 +134,7 @@ public class Mailer
 					emailsTo.add(new InternetAddress(email));
 				}catch(AddressException ae)
 				{
-					Mailer.logger.warn(ae.getMessage());
+					logger.warn(ae.getMessage());
 				}
 			}
 		}
@@ -176,27 +151,40 @@ public class Mailer
 		try
 		{
 			sender = new Sender(smtpHost, smtpPort, smtpUser, smtpPassword, hostname);
-		} catch (Exception e1)
+		} catch (Exception e)
 		{
-			System.err.println(e1.getMessage());
+			logger.error(e.getMessage());
+			System.err.println(e.getMessage());
 			System.exit(1);
 		}
-		sender.setCharset(charset);
-		sender.setContentTransferEncoding(contentTransferEncoding);
 		sender.setRecipientType(recipientType);
+		
+		//create message
+		MailMessage message = null;
+		try
+		{
+			if(emlFile != null)
+				message = new MailMessage(emlFile);
+			else
+				message = new MailMessage(text,contentType, subject, charset);
+			message.setContentTransferEncoding(contentTransferEncoding);
+			message.setAddressFrom(personFrom, emailFrom, charset);
+		} catch (Exception e)
+		{
+			logger.error(e.getMessage());
+			System.err.println(e.getMessage());
+		}
 		
 		//send message
 		try
 		{
-			if(emlFile != null)
-				sender.send(emlFile, subject, emailFrom, personFrom, emailsTo);
-			else 
-				sender.send(text, contentType, subject, emailFrom, personFrom, emailsTo);
+			sender.send(message, emailsTo);
 		}catch(Exception e)
 		{
+			logger.error(e.getMessage());
 			System.err.println(e.getMessage());
 		}
-		Mailer.logger.info("Program stoped");
+		logger.info("Program stoped");
 	}
 	
 	
@@ -219,11 +207,13 @@ public class Mailer
             text = textBuilder.toString();
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("body file not exists");
+			System.err.println("Body file not exists");
+			logger.error("Body file not exists");
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
 			System.err.println("Specified charset is not found");
+			logger.error("Specified charset is not found");
 			System.exit(1);
 		}
             
@@ -232,6 +222,7 @@ public class Mailer
 	//--------------------------------------------
 	private static String getSubjectFromFile(String file, String charset)
 	{
+		logger.info("Get subject from file");
 		String subject = null;
 		File subjectFile = new File(file);
 		try
@@ -241,16 +232,19 @@ public class Mailer
             	subject = scanner.nextLine();
             else
             {
-            	System.err.println("subject file is empty");
+            	System.err.println("Subject file is empty");
+            	logger.error("Subject file is empty");
 				System.exit(1);
             }
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("subject file not exists");
+			System.err.println("Subject file not exists");
+			logger.error("Subject file not exists");
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
 			System.err.println("Specified charset is not found");
+			logger.error("Specified charset is not found");
 			System.exit(1);
 		}
 		return subject;
@@ -258,7 +252,7 @@ public class Mailer
 	//--------------------------------------------
 	private static ArrayList<Address> getEmailsFromFile(String file)
 	{
-		Mailer.logger.info("Get emails from file");
+		logger.info("Get emails from file");
 		ArrayList<Address> emailsTo = new ArrayList<Address>();
 		File emailsFile = new File(file);
 		try
@@ -272,12 +266,13 @@ public class Mailer
                 	emailsTo.add(new InternetAddress(email));
                 }catch(AddressException ae)
                 {
-                	System.err.println(email +": "+ ae.getMessage());
+                	logger.warn(email +": "+ ae.getMessage());
                 }
             }
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("file with emails not exists");
+			System.err.println("File with emails not exists");
+			logger.error("File with emails not exists");
 			System.exit(1);
 		}
             
