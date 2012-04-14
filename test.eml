@@ -15,5 +15,5 @@ Content-Transfer-Encoding: 8bit
 
 <html>
 	<b>test message (тестовое сообщение)</b>
-	<img src="../QwertoMailer\test.png" />
+	<img src="../qwertomailer/test.png" />
 </html>

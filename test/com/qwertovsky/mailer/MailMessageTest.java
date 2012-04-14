@@ -432,7 +432,7 @@ public class MailMessageTest
 		try
 		{
 			MailMessage message = new MailMessage(new File("test.eml"));
-			String cid = message.addInlineAttachment("../QwertoMailer\\test.png");
+			String cid = message.addInlineAttachment("../qwertomailer/test.png");
 			Object related = message.getContent();
 			if(related instanceof Multipart
 					&& ((Multipart)related).getContentType().startsWith("multipart/related"))
@@ -444,7 +444,7 @@ public class MailMessageTest
 				if(!html.contains("\"cid:" + cid +"\""))
 					fail("incorrect addInlineAttachments");
 				BodyPart file = ((Multipart)related).getBodyPart(1);
-				if(!file.getFileName().equals("test.png"))
+				if(!file.getHeader("Content-ID")[0].equals(cid))
 						fail("incorrect addInlineAttachments");
 			}
 			else
