@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.mail.Address;
@@ -145,6 +146,45 @@ public class Mailer
 		}
 		
 		recipientType = commandLine.getOptionValue("sendMethod","PERSON");
+		
+		String alttext = null;
+		boolean related = false;
+		if(contentType.equalsIgnoreCase("text/html"))
+		{
+			//get alternative text
+			if(commandLine.hasOption("alttext"))
+			{
+				alttext = commandLine.getOptionValue("alttext");
+			}
+			else if(commandLine.hasOption("alttextFile"))
+			{
+				String file = commandLine.getOptionValue("alttextFile");
+				alttext = getAltTextFromFile(file, charset);
+			}
+		
+			//is related
+			if(commandLine.hasOption("related"))
+			{
+				related = true;
+			}
+		}
+		
+		//get attachments
+		List<File> attachFiles = new ArrayList<File>();;
+		if(commandLine.hasOption("attach"))
+		{
+			String[] attachFilesPath = commandLine.getOptionValues("attach");
+			
+			for(String path:attachFilesPath)
+			{
+				attachFiles.add(new File(path));
+			}
+		}
+		else if(commandLine.hasOption("attachFile"))
+		{
+			String file = commandLine.getOptionValue("attachFile");
+			attachFiles = getAttachFilesFromFile(file);
+		}
 			
 		//create sender
 		Sender sender = null;
@@ -169,7 +209,14 @@ public class Mailer
 				message = new MailMessage(text,contentType, subject, charset);
 			message.setContentTransferEncoding(contentTransferEncoding);
 			message.setAddressFrom(personFrom, emailFrom, charset);
-			message.setRelated();
+			if(alttext != null)
+				message.setAlternativeText(alttext, charset);
+			if(attachFiles != null && !attachFiles.isEmpty())
+			{
+				message.addAttachments(attachFiles);
+			}
+			if(related)
+				message.setRelated();
 		} catch (Exception e)
 		{
 			logger.error(e.getMessage());
@@ -222,6 +269,38 @@ public class Mailer
             
 		return text;
 	}
+	
+	//--------------------------------------------
+	private static String getAltTextFromFile(String file, String charset)
+	{
+		String text = null;
+		File textFile = new File(file);
+		try
+		{
+			Scanner scanner = new Scanner(textFile, charset);
+            StringBuilder textBuilder = new StringBuilder();
+            while(scanner.hasNextLine())
+            {
+                String line = scanner.nextLine();
+                textBuilder.append(line);
+                textBuilder.append("\n");
+            }
+            text = textBuilder.toString();
+		} catch (FileNotFoundException e)
+		{
+			System.err.println("Alttext file not exists");
+			logger.error("Alttext file not exists");
+			System.exit(1);
+		}catch(IllegalArgumentException e)
+		{
+			System.err.println("Specified charset is not found");
+			logger.error("Specified charset is not found");
+			System.exit(1);
+		}
+            
+		return text;
+	}
+	
 	//--------------------------------------------
 	private static String getSubjectFromFile(String file, String charset)
 	{
@@ -252,6 +331,7 @@ public class Mailer
 		}
 		return subject;
 	}
+	
 	//--------------------------------------------
 	private static ArrayList<Address> getEmailsFromFile(String file)
 	{
@@ -281,6 +361,31 @@ public class Mailer
             
 		return emailsTo;
 	}
+
+	//--------------------------------------------
+	private static List<File> getAttachFilesFromFile(String file)
+	{
+		logger.info("Get emails from file");
+		List<File> files = new ArrayList<File>();
+		File attachFiles = new File(file);
+		try
+		{
+			Scanner scanner = new Scanner(attachFiles);
+            while(scanner.hasNextLine())
+            {
+                String attachFile = scanner.nextLine();
+                files.add(new File(attachFile));
+            }
+		} catch (FileNotFoundException e)
+		{
+			System.err.println("File with attachments not exists");
+			logger.error("File with attachments not exists");
+			System.exit(1);
+		}
+            
+		return files;
+	}
+	
 	//--------------------------------------------
 	@SuppressWarnings("static-access")
 	private static Options createOptions()
@@ -347,7 +452,6 @@ public class Mailer
 				.hasArg()
 				.create("subjectFile");
 		OptionGroup ogSubject = new OptionGroup();
-		//ogSubject.setRequired(true); //not required if emlFile was specified
 		ogSubject.addOption(oSubject);
 		ogSubject.addOption(oSubjectFile);
 		
@@ -356,10 +460,9 @@ public class Mailer
 				.hasArgs()
 				.withValueSeparator(',')
 				.create("emailTo");
-		Option oEmailToFile = OptionBuilder.withArgName("type>:<file")
+		Option oEmailToFile = OptionBuilder.withArgName("file")
 				.withDescription("specify file with recipients list")
-				.hasArgs(2)
-				.withValueSeparator(':')
+				.hasArg()
 				.create("emailToFile");
 		OptionGroup ogEmailTo = new OptionGroup();
 		ogEmailTo.setRequired(true); 
@@ -381,6 +484,33 @@ public class Mailer
 				.isRequired()
 				.create("emailFrom");
 		
+		Option oAltText = OptionBuilder.withArgName("text")
+				.withDescription("Add alternative plain text")
+				.hasArg()
+				.create("alttext");
+		Option oAltTextFile = OptionBuilder.withArgName("file")
+				.withDescription("Add alternative plain text from file")
+				.hasArg()
+				.create("alttextFile");
+		OptionGroup ogAltText = new OptionGroup();
+		ogAltText.addOption(oAltText);
+		ogAltText.addOption(oAltTextFile);
+		
+		Option  oAttach = OptionBuilder.withArgName("files")
+				.withDescription("attach files (comma separated)")
+				.hasArgs()
+				.withValueSeparator(',')
+				.create("attach");
+		Option  oAttachFile = OptionBuilder.withArgName("file")
+				.withDescription("file with list of attach file")
+				.hasArgs()
+				.create("attachFile");
+		OptionGroup ogAttach = new OptionGroup();
+		ogAttach.addOption(oAttach);
+		ogAttach.addOption(oAttachFile);
+		
+		Option oRelated = new Option("related","Create message with inline images");
+		
 		Option oEmailToMaxPerMessage = OptionBuilder.withArgName("number")
 				.withDescription("for to/cc method number of recipients per message")
 				.hasArgs()
@@ -392,8 +522,7 @@ public class Mailer
 		OptionGroup ogMultiRecipients = new OptionGroup();
 		ogMultiRecipients.addOption(oEmailToMaxPerMessage);
 		ogMultiRecipients.addOption(oEmailToBCC);
-		
-		
+				
 		options.addOption(oSmtpHost);
 		options.addOption(oSmtpPort);
 		options.addOption(oSmtpUser);
@@ -409,6 +538,9 @@ public class Mailer
 		options.addOption(oSendMethod);
 		options.addOption(oPersonFrom);
 		options.addOptionGroup(ogMultiRecipients);
+		options.addOptionGroup(ogAttach);
+		options.addOptionGroup(ogAltText);
+		options.addOption(oRelated);
 		return options;
 	}
 
