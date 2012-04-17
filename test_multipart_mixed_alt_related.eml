@@ -1,0 +1,156 @@
+X-Account-Key: account1
+X-UIDL: UID21669-1283491850
+X-Mozilla-Status: 0001
+X-Mozilla-Status2: 10000000
+X-Mozilla-Keys:                                                                                 
+Message-ID: <4F8567F8.8080208>
+Date: Wed, 11 Apr 2012 15:16:08 +0400
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko/20120327 Thunderbird/11.0.1
+MIME-Version: 1.0
+Subject: multipart
+Content-Type: multipart/mixed;
+ boundary="------------090303020604010006070604"
+
+This is a multi-part message in MIME format.
+--------------090303020604010006070604
+Content-Type: multipart/alternative;
+ boundary="------------000102070805030703050306"
+
+
+--------------000102070805030703050306
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: 7bit
+
+text message
+
+
+--------------000102070805030703050306
+Content-Type: multipart/related;
+ boundary="------------000004020701060900080404"
+
+This is a multi-part message in MIME format.
+--------------000004020701060900080404
+Content-Type: text/html; charset=windows-1251
+Content-Transfer-Encoding: 8bit
+
+<html>
+	test related message (тестовое сообщение)<br>
+    <img alt="" src="cid:part1.00070004.09020305"
+      height="89" width="128">
+	<br><img src="test.png" />
+</html>
+
+--------------000004020701060900080404
+Content-Type: image/png;
+ name="test_old.png"
+Content-Transfer-Encoding: base64
+Content-ID: <part1.00070004.09020305>
+Content-Disposition: inline;
+ filename="test_old.png"
+
+iVBORw0KGgoAAAANSUhEUgAAAIAAAABZCAMAAADB0dweAAAAIGNIUk0AAHolAACAgwAA+f8A
+AIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAMAUExURaempaimpaimpqmnp6qoqKqqqauqqqyq
+qayqq62rrKysq62srK6sra+trq6ura+urrCurrCur7Cwr7GwsLGwsbKxsrKysbOzsrKys7Sz
+tLW0tLS0tbS1trW2tbe3tra2t7i3t7i3uLi4uLi4ubm5urm6ubm6urq6u7u7vLq8u7q8vLu8
+vby8vLy9vb29vry+vr2+v76/wL7Av77AwL/Awb/CwcHBwcDBwsDCwcDCwsHCw8HCxMLCxcLE
+w8PFxMLExcLExsTExcTFxsTFx8TGxcTGxsTGx8XGyMXIyMbIycbIysfKycfKy8nIyMjJysjJ
+y8rKysjKy8nKzMrLzsrNzMnMzcnMzsrMz8vOzsvOz8zNz8zOz8vO0MzN0MzP0MzO0c7P0s3Q
+0c3Q0s7R087S087S1M/S1dPS0tHS09DT1NHT1dDU1dHU1tLV19LW19TU09TU1NHV2NHW2NLW
+2dPW2tTX2NTY2NTY2dXY2tXY29ba29XZ3Nba3Nba3dfb3tfc3dfc3tfc39jY2Nra2tjb29jb
+3Njb3tjc3drd3tjc39je393d3d7e3t/f39nc4Nne4Nne4drf4tvf49zf4tvg4Nvg4drg4trg
+49vi49zh4dzg4tzg493i49zh5Nzh5dzi5N3i5d3i5t7k5d7k5t7k597k6ODg4OPj4+Dk5eDk
+5uDk5+Hm5+Xl5eDl6ODl6eDm6OHm6eHm6uLn6+Lo6eLo6uLo6+Pp7OPp7eTo6eTo6+Tq6+Tp
+7OTq7OXq7eXr7ubr7+bs7ebs7ubs7+jo6Onp6erq6ujt7+7u7ubs8Ofu8Ojt8Ojt8eju8Onu
+8enu8unv8+rw8urw8+vx9Ovx9ezx8+zw9Ozx9ezy9Ozy9e3y9u3z9+709u/09+/1+PDw8PPz
+8/Dz9fD19/D29/T09PD1+PH2+PL2+fv7+/z8/P///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALgK2iwAAAAJcEhZ
+cwAACxIAAAsSAdLdfvwAAAAZdEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41Ljg3O4BdAAAG
+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
+--------------000004020701060900080404--
+
+--------------000102070805030703050306--
+
+--------------090303020604010006070604
+Content-Type: text/plain; charset=windows-1251;
+ name="ReadMessage.java"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ReadMessage.java"
+
+package com.qwertovsky.mailer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.mail.BodyPart;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+
+public class ReadMessage
+{
+
+	/**
+	 * @param args
+	 * @throws MessagingException 
+	 * @throws IOException 
+	 */
+	public static void main(String[] args) throws MessagingException, IOException
+	{
+		Session session = Session.getDefaultInstance(new Properties());
+		InputStream is = new FileInputStream(new File("multipart.eml"));
+		Message message = new MimeMessage(session, is);
+		Object mixed = message.getContent();
+		System.out.println(((Multipart)mixed).getContentType());
+		Object alternative = ((Multipart)mixed).getBodyPart(0).getContent();
+		System.out.println(((Multipart)alternative).getContentType());
+		BodyPart text = ((Multipart)alternative).getBodyPart(0);
+		BodyPart html = ((Multipart)alternative).getBodyPart(1);
+		System.out.println(text.getContentType());
+		System.out.println(html.getContentType());
+		BodyPart attachment = ((Multipart)mixed).getBodyPart(1);
+		System.out.println(attachment.getContentType());
+
+	}
+
+}
+
+--------------090303020604010006070604--
+
+
+
+

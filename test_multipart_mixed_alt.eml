@@ -13,6 +13,18 @@ Content-Type: multipart/mixed;
 
 This is a multi-part message in MIME format.
 --------------090303020604010006070604
+Content-Type: multipart/alternative;
+ boundary="------------000102070805030703050306"
+
+
+--------------000102070805030703050306
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: 7bit
+
+text message
+
+
+--------------000102070805030703050306
 Content-Type: text/html; charset=windows-1251
 Content-Transfer-Encoding: 7bit
 
@@ -20,6 +32,8 @@ Content-Transfer-Encoding: 7bit
 	<b>test message (тестовое сообщение)</b>
 	<img src="test.png" />
 </html>
+
+--------------000102070805030703050306--
 
 --------------090303020604010006070604
 Content-Type: text/plain; charset=windows-1251;
