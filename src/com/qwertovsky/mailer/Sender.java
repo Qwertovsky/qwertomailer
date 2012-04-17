@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Address;
-import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
@@ -71,6 +70,8 @@ public class Sender
 	//-----------------------------------------------
 	public void send(MailMessage mailMessage, List<Address> emailsTo) throws Exception
 	{
+		if(mailMessage == null)
+			throw new Exception("Message is not created");
 		String charset = mailMessage.getCharset();
 		Address from = mailMessage.getAddressFrom();
 		if(from == null)
