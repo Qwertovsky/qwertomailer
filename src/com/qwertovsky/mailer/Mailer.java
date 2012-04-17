@@ -169,10 +169,13 @@ public class Mailer
 				message = new MailMessage(text,contentType, subject, charset);
 			message.setContentTransferEncoding(contentTransferEncoding);
 			message.setAddressFrom(personFrom, emailFrom, charset);
+			message.setRelated();
 		} catch (Exception e)
 		{
 			logger.error(e.getMessage());
 			System.err.println(e.getMessage());
+			logger.info("Program stoped");
+			return;
 		}
 		
 		//send message
