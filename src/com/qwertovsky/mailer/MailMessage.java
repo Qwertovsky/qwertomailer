@@ -194,6 +194,7 @@ public class MailMessage
 				MimeBodyPart bodyPart = new MimeBodyPart();
 				bodyPart.setContent(content,contentType);
 				bodyPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+				bodyPart.setHeader("Content-Type", contentType);
 				multipart.addBodyPart(bodyPart);
 			}
 			//add attachments to end of message
