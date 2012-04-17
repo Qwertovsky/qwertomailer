@@ -1,5 +1,6 @@
 package com.qwertovsky.mailer;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -268,11 +270,17 @@ public class MailMessage
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					attachPart.setHeader("Content-Type",mimeType);
+					attachPart.setContentID("<" + attachment.getName()
+							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 					((Multipart)mainPart).addBodyPart(attachPart);
 					//replace html
 					String html = (String)  ((Multipart)mainPart).getBodyPart(0).getContent();
-					html = html.replace(path, "cid:" + attachPart.getContentID());
+					String cid = attachPart.getContentID();
+					cid = cid.substring(1, cid.length() - 1);
+					html = html.replace(path, "cid:" + cid);
 					MimeBodyPart htmlPart = new MimeBodyPart();
 					htmlPart.setContent(html, ((Multipart)mainPart).getBodyPart(0).getContentType());
 					htmlPart.setHeader("Content-Type", ((Multipart)mainPart).getBodyPart(0).getContentType());
@@ -317,11 +325,17 @@ public class MailMessage
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					attachPart.setHeader("Content-Type",mimeType);
+					attachPart.setContentID("<" + attachment.getName()
+							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 					related.addBodyPart(attachPart);
 					//add html
 					String html = (String)  ((Multipart)body).getBodyPart(1).getContent();
-					html = html.replace(path, "cid:" + attachPart.getContentID());
+					String cid = attachPart.getContentID();
+					cid = cid.substring(1, cid.length() - 1);
+					html = html.replace(path, "cid:" + cid);
 					MimeBodyPart htmlPart = new MimeBodyPart();
 					htmlPart.setContent(html, ((Multipart)body).getBodyPart(1).getContentType());
 					htmlPart.setHeader("Content-Type", ((Multipart)body).getBodyPart(1).getContentType());
@@ -358,11 +372,17 @@ public class MailMessage
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 				((Multipart)body).addBodyPart(attachPart);
 				//replace html
 				String html = (String) ((Multipart)body).getBodyPart(0).getContent();;
-				html = html.replace(path, "cid:" + attachPart.getContentID());
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
 				MimeBodyPart htmlPart = new MimeBodyPart();
 				htmlPart.setContent(html, ((Multipart)body).getBodyPart(0).getContentType());
 				htmlPart.setHeader("Content-Type", ((Multipart)body).getBodyPart(0).getContentType());
@@ -394,11 +414,17 @@ public class MailMessage
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 				related.addBodyPart(attachPart);
 				//add html
-				String html = (String) ((Multipart)content).getBodyPart(0).getContent();;
-				html = html.replace(path, "cid:" + attachPart.getContentID());
+				String html = (String) ((Multipart)content).getBodyPart(0).getContent();
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
 				MimeBodyPart htmlPart = new MimeBodyPart();
 				htmlPart.setContent(html, ((Multipart)content).getBodyPart(0).getContentType());
 				htmlPart.setHeader("Content-Type", ((Multipart)content).getBodyPart(0).getContentType());
@@ -437,11 +463,17 @@ public class MailMessage
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					attachPart.setHeader("Content-Type",mimeType);
+					attachPart.setContentID("<" + attachment.getName()
+							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 					((Multipart)body).addBodyPart(attachPart);
 					//replace html
 					String html = (String) ((Multipart)body).getBodyPart(0).getContent();
-					html = html.replace(path, "cid:" + attachPart.getContentID());
+					String cid = attachPart.getContentID();
+					cid = cid.substring(1, cid.length() - 1);
+					html = html.replace(path, "cid:" + cid);
 					MimeBodyPart htmlPart = new MimeBodyPart();
 					htmlPart.setContent(html, ((Multipart)body).getBodyPart(0).getContentType());
 					htmlPart.setHeader("Content-Type", ((Multipart)body).getBodyPart(0).getContentType());
@@ -473,11 +505,17 @@ public class MailMessage
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					attachPart.setHeader("Content-Type",mimeType);
+					attachPart.setContentID("<" + attachment.getName()
+							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 					related.addBodyPart(attachPart);
 					//add html
 					String html = (String) ((Multipart)content).getBodyPart(1).getContent();
-					html = html.replace(path, "cid:" + attachPart.getContentID());
+					String cid = attachPart.getContentID();
+					cid = cid.substring(1, cid.length() - 1);
+					html = html.replace(path, "cid:" + cid);
 					MimeBodyPart htmlPart = new MimeBodyPart();
 					htmlPart.setContent(html, ((Multipart)content).getBodyPart(1).getContentType());
 					htmlPart.setHeader("Content-Type", ((Multipart)content).getBodyPart(1).getContentType());
@@ -508,11 +546,17 @@ public class MailMessage
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 				((Multipart)content).addBodyPart(attachPart);
 				//replace html
 				String html = (String) ((Multipart)content).getBodyPart(0).getContent();
-				html = html.replace(path, "cid:" + attachPart.getContentID());
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
 				MimeBodyPart htmlPart = new MimeBodyPart();
 				htmlPart.setContent(html, ((Multipart)content).getBodyPart(0).getContentType());
 				htmlPart.setHeader("Content-Type", ((Multipart)content).getBodyPart(0).getContentType());
@@ -536,11 +580,17 @@ public class MailMessage
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				attachPart.setContentID(attachment.getName() + "." + attachPart.hashCode() +"."+ System.currentTimeMillis());
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
 				related.addBodyPart(attachPart);
 				//add html
 				String html = (String) content;
-				html = html.replace(path, "cid:" + attachPart.getContentID());
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
 				MimeBodyPart htmlPart = new MimeBodyPart();
 				htmlPart.setContent(html, contentType);
 				htmlPart.setHeader("Content-Type", contentType);
