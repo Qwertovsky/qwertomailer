@@ -185,6 +185,15 @@ public class Mailer
 			String file = commandLine.getOptionValue("attachFile");
 			attachFiles = getAttachFilesFromFile(file);
 		}
+		
+		//get max number of recipients per message (for TO and CC)
+		int maxRecipients = 0;
+		if(commandLine.hasOption("emailToMaxPerMessage"))
+		{
+			String value = commandLine.getOptionValue("emailToMaxPerMessage");
+			if(value != null)
+				maxRecipients = Integer.valueOf(value);
+		}
 			
 		//create sender
 		Sender sender = null;
@@ -198,6 +207,8 @@ public class Mailer
 			System.exit(1);
 		}
 		sender.setRecipientType(recipientType);
+		if(maxRecipients > 0)
+			sender.setMaxRecipientsPerMessage(maxRecipients);
 		
 		//create message
 		MailMessage message = null;
@@ -515,13 +526,8 @@ public class Mailer
 				.withDescription("for to/cc method number of recipients per message")
 				.hasArgs()
 				.create("emailToMaxPerMessage");
-		Option oEmailToBCC = OptionBuilder.withArgName("email")
-				.withDescription("for BCC method specify TO (replace :Undisclosed)")
-				.hasArg()
-				.create("emailToBCC");
-		OptionGroup ogMultiRecipients = new OptionGroup();
-		ogMultiRecipients.addOption(oEmailToMaxPerMessage);
-		ogMultiRecipients.addOption(oEmailToBCC);
+		
+			
 				
 		options.addOption(oSmtpHost);
 		options.addOption(oSmtpPort);
@@ -537,7 +543,7 @@ public class Mailer
 		options.addOptionGroup(ogEmailTo);
 		options.addOption(oSendMethod);
 		options.addOption(oPersonFrom);
-		options.addOptionGroup(ogMultiRecipients);
+		options.addOption(oEmailToMaxPerMessage);
 		options.addOptionGroup(ogAttach);
 		options.addOptionGroup(ogAltText);
 		options.addOption(oRelated);

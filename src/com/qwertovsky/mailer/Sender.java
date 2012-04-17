@@ -37,6 +37,7 @@ public class Sender
 	private String smtpPassword;
 	private String hostname;
 	private Method recipientType = Method.PERSON;
+	private int maxRecipients = 0;
 	
 	private Properties mailProp;
 	
@@ -44,6 +45,7 @@ public class Sender
 	public enum Method {TO, CC, BCC, PERSON};
 	
 	final Logger logger = LoggerFactory.getLogger(Sender.class);
+	
 
 
 	public Sender(String smtpHostName, String smtpPort, String smtpUser,
@@ -139,8 +141,7 @@ public class Sender
 		}
 		else
 		{
-			logger.info("Create message");
-			MimeMessage message = new MimeMessage(session);
+			logger.info("Create messages");
 			
 			RecipientType rt = null;
 			if(recipientType == Method.TO)
@@ -149,17 +150,39 @@ public class Sender
 				rt = RecipientType.CC;
 			if(recipientType == Method.BCC)
 				rt = RecipientType.BCC;
-			try
+			
+			//create messages 
+			if(maxRecipients == 0 || recipientType == Method.BCC)
 			{
-				makeMessage(message, mailMessage);
-				message.setRecipients(rt, (Address[])emailsTo.toArray());
-			} catch (MessagingException e)
-			{
-				System.err.println(e.getMessage());
-				logger.error("Message is not created:" + e.getMessage());
-				return;
+				maxRecipients = emailsTo.size();
 			}
-			messages.add(message);
+			
+			int position = 0;
+			while(position < emailsTo.size())
+			{
+				//get recipients array
+				int fromIndex = position;
+				int toIndex = position + maxRecipients;
+				if(toIndex > emailsTo.size())
+					toIndex = emailsTo.size();
+				Address[] recipients = emailsTo.subList(fromIndex, toIndex).toArray(new Address[0]);
+				
+				MimeMessage message = new MimeMessage(session);
+				
+				try
+				{
+					makeMessage(message, mailMessage);
+					message.setRecipients(rt, recipients);
+				} catch (MessagingException e)
+				{
+					System.err.println(e.getMessage());
+					logger.error("Message is not created:" + e.getMessage());
+					return;
+				}
+				messages.add(message);
+				
+				position = position + maxRecipients;
+			}
 		}
 		
 		//send messages
@@ -169,7 +192,7 @@ public class Sender
 		{
 			try
 			{
-//				Transport.send(message);
+				Transport.send(message);
 				File file = new File(i+".eml");
 				message.writeTo(new FileOutputStream(file));
 				i++;
@@ -186,6 +209,7 @@ public class Sender
 		}
 		logger.info("End sending");
 	}
+	
 	//-----------------------------------------------
 	private void makeMessage(MimeMessage message, MailMessage mailMessage) throws MessagingException
 	{
@@ -212,6 +236,7 @@ public class Sender
 			throw e;
 		}
 	}
+	
 	//-----------------------------------------------
 	public void setRecipientType(String recipientType)
 	{
@@ -221,4 +246,12 @@ public class Sender
 			this.recipientType = sendMethod;
 		}
 	}
+
+	//--------------------------------------------
+	public void setMaxRecipientsPerMessage(int maxRecipients)
+	{
+		this.maxRecipients = maxRecipients;
+		
+	}
+	
 }
