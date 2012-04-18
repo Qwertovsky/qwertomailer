@@ -93,6 +93,7 @@ public class MailMessageTest
 		}
 	}
 
+	//--------------------------------------------
 	@Test
 	public void testSetSubject()
 	{
@@ -150,6 +151,7 @@ public class MailMessageTest
 		}
 	}
 
+	//--------------------------------------------
 	@Test
 	public void testSetAddressFrom()
 	{
@@ -211,6 +213,7 @@ public class MailMessageTest
 		}
 	}
 
+	//--------------------------------------------
 	@Test
 	public void testAddAttachment()
 	{
@@ -810,13 +813,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("../qwertomailer/test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 		//--------------------
 		/*
@@ -832,13 +835,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test_multipart_alt.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 		//--------------------
 		/*
@@ -853,13 +856,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test_multipart_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 		//--------------------
 		/*
@@ -876,13 +879,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test_multipart_alt_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 		//--------------------
 		/*
@@ -898,13 +901,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test_multipart_mixed.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 		//--------------------
 		/*
@@ -922,13 +925,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test_multipart_mixed_alt.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 		//--------------------
 		/*
@@ -945,13 +948,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test_multipart_mixed_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 		//--------------------
 		/*
@@ -970,13 +973,13 @@ public class MailMessageTest
 			MailMessage message = new MailMessage(new File("test_multipart_mixed_alt_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 			if(!paths.get(0).equalsIgnoreCase("test.png"))
-				fail("incorrect addInlineAttachments");
+				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
 			e.printStackTrace();
-			fail("incorrect addInlineAttachments");
+			fail("incorrect setRelated");
 		}
 	}
 }
