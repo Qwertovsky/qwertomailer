@@ -16,7 +16,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(value = Parameterized.class)
-public class MailMessageSSSSTest
+public class MessageContentSSSSTest
 {
 	String content;
 	String contentType;
@@ -54,7 +54,7 @@ public class MailMessageSSSSTest
 				}); 
 	}
 	
-	public MailMessageSSSSTest(String content, String contentType, String subject
+	public MessageContentSSSSTest(String content, String contentType, String subject
 			, String charset)
 	{
 		this.content = content;
@@ -64,12 +64,12 @@ public class MailMessageSSSSTest
 	}
 	
 	@Test
-	public void testMailMessageStringStringStringString()
+	public void testMessageContentStringStringStringString()
 	{
 		
 		try
 		{
-			MailMessage message = new MailMessage(content, contentType, subject, charset);
+			MessageContent message = new MessageContent(content, contentType, subject, charset);
 			if(!message.getContent().equals(content))
 				fail("incorrect content");
 			

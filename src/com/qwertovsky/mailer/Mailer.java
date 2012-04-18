@@ -231,13 +231,13 @@ public class Mailer
 			sender.setEmailsToCC(emailsToCC);
 		
 		//create message
-		MailMessage message = null;
+		MessageContent message = null;
 		try
 		{
 			if(emlFile != null)
-				message = new MailMessage(emlFile);
+				message = new MessageContent(emlFile);
 			else
-				message = new MailMessage(text,contentType, subject, charset);
+				message = new MessageContent(text,contentType, subject, charset);
 			message.setContentTransferEncoding(contentTransferEncoding);
 			message.setAddressFrom(personFrom, emailFrom, charset);
 			if(alttext != null)

@@ -72,7 +72,7 @@ public class Sender
 	}
 		
 	//-----------------------------------------------
-	public void send(MailMessage mailMessage, List<Address> emailsTo) throws Exception
+	public void send(MessageContent mailMessage, List<Address> emailsTo) throws Exception
 	{
 		if(mailMessage == null)
 			throw new Exception("Message is not created");
@@ -220,7 +220,7 @@ public class Sender
 	}
 	
 	//-----------------------------------------------
-	private void makeMessage(MimeMessage message, MailMessage mailMessage) throws MessagingException
+	private void makeMessage(MimeMessage message, MessageContent mailMessage) throws MessagingException
 	{
 		Object content = mailMessage.getContent();
 		String contentType = null;

@@ -86,7 +86,7 @@ public class SenderTest
 		try
 		{
 			emlFile = new File("test.eml");
-			MailMessage message = new MailMessage(emlFile);
+			MessageContent message = new MessageContent(emlFile);
 			message.setAddressFrom("from", "from", "utf-8");
 			sender.send(message, emailsTo);
 		} catch (Exception e)
@@ -109,7 +109,7 @@ public class SenderTest
 		try
 		{
 			emlFile = new File("test_multipart_alt.eml");
-			MailMessage message = new MailMessage(emlFile);
+			MessageContent message = new MessageContent(emlFile);
 			message.setAddressFrom("from", "from", "utf-8");
 			sender.send(message, emailsTo);
 		} catch (Exception e)
@@ -132,7 +132,7 @@ public class SenderTest
 		try
 		{
 			emlFile = new File("test_multipart_mixed.eml");
-			MailMessage message = new MailMessage(emlFile);
+			MessageContent message = new MessageContent(emlFile);
 			message.setAddressFrom("from", "from", "utf-8");
 			sender.send(message, emailsTo);
 		} catch (Exception e)

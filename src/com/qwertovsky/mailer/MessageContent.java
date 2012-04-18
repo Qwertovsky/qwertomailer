@@ -35,7 +35,7 @@ import javax.swing.text.html.parser.ParserDelegator;
  * @author Qwertovsky
  *
  */
-public class MailMessage
+public class MessageContent
 {
 	private Object content = null;
 	private String contentType = null;
@@ -53,7 +53,7 @@ public class MailMessage
 	 * @throws IOException can't read file
 	 * @throws MessagingException
 	 */
-	public MailMessage(File EMLFile) throws Exception
+	public MessageContent(File EMLFile) throws Exception
 	{
 		Session mailSession = Session.getDefaultInstance(new Properties(), null);
 		try
@@ -99,7 +99,7 @@ public class MailMessage
 	 *  <br />- if subject is null or subject is empty text line, message "Bad subject"
 	 * @throws MessagingException
 	 */
-	public MailMessage(String content, String contentType, String subject, String charset) throws Exception
+	public MessageContent(String content, String contentType, String subject, String charset) throws Exception
 	{
 		//not allow content with no body parts
 		if(content == null || content.equals(""))
