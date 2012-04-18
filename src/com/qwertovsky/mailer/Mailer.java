@@ -194,6 +194,24 @@ public class Mailer
 			if(value != null)
 				maxRecipients = Integer.valueOf(value);
 		}
+		
+		//get TO for CC/BCC send method
+		ArrayList<Address> emailsToCC = new ArrayList<Address>();
+		if((recipientType.equalsIgnoreCase("CC") || recipientType.equalsIgnoreCase("BCC"))
+				&& commandLine.hasOption("emailToCC"))
+		{
+			String[] emails = commandLine.getOptionValues("emailToCC");
+			for(String email:emails)
+			{
+				try
+				{
+					emailsToCC.add(new InternetAddress(email));
+				}catch(AddressException ae)
+				{
+					logger.warn(ae.getMessage());
+				}
+			}
+		}
 			
 		//create sender
 		Sender sender = null;
@@ -209,6 +227,8 @@ public class Mailer
 		sender.setRecipientType(recipientType);
 		if(maxRecipients > 0)
 			sender.setMaxRecipientsPerMessage(maxRecipients);
+		if(emailsToCC != null && !emailsToCC.isEmpty())
+			sender.setEmailsToCC(emailsToCC);
 		
 		//create message
 		MailMessage message = null;
@@ -376,7 +396,7 @@ public class Mailer
 	//--------------------------------------------
 	private static List<File> getAttachFilesFromFile(String file)
 	{
-		logger.info("Get emails from file");
+		logger.info("Get attach files from file");
 		List<File> files = new ArrayList<File>();
 		File attachFiles = new File(file);
 		try
@@ -526,8 +546,11 @@ public class Mailer
 				.withDescription("for to/cc method number of recipients per message")
 				.hasArgs()
 				.create("emailToMaxPerMessage");
-		
-			
+		Option oEmailToCC = OptionBuilder.withArgName("emails")
+				.withDescription("emails for header TO when send method is CC or BCC (comma separated)")
+				.hasArgs()
+				.withValueSeparator(',')
+				.create("emailToCC");
 				
 		options.addOption(oSmtpHost);
 		options.addOption(oSmtpPort);
@@ -544,6 +567,7 @@ public class Mailer
 		options.addOption(oSendMethod);
 		options.addOption(oPersonFrom);
 		options.addOption(oEmailToMaxPerMessage);
+		options.addOption(oEmailToCC);
 		options.addOptionGroup(ogAttach);
 		options.addOptionGroup(ogAltText);
 		options.addOption(oRelated);

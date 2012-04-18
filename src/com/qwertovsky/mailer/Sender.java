@@ -38,6 +38,7 @@ public class Sender
 	private String hostname;
 	private Method recipientType = Method.PERSON;
 	private int maxRecipients = 0;
+	private ArrayList<Address> emailsToCC = null;
 	
 	private Properties mailProp;
 	
@@ -45,6 +46,7 @@ public class Sender
 	public enum Method {TO, CC, BCC, PERSON};
 	
 	final Logger logger = LoggerFactory.getLogger(Sender.class);
+	
 	
 
 
@@ -173,6 +175,13 @@ public class Sender
 				{
 					makeMessage(message, mailMessage);
 					message.setRecipients(rt, recipients);
+					//set header TO for CC and BCC method
+					if((recipientType == Method.CC || recipientType == Method.BCC)
+							&& emailsToCC != null && !emailsToCC.isEmpty())
+					{
+						Address[] emails = emailsToCC.toArray(new Address[0]);
+						message.setRecipients(RecipientType.TO, emails);
+					}
 				} catch (MessagingException e)
 				{
 					System.err.println(e.getMessage());
@@ -251,6 +260,13 @@ public class Sender
 	public void setMaxRecipientsPerMessage(int maxRecipients)
 	{
 		this.maxRecipients = maxRecipients;
+		
+	}
+
+	//--------------------------------------------
+	public void setEmailsToCC(ArrayList<Address> emailsToCC)
+	{
+		this.emailsToCC = emailsToCC;
 		
 	}
 	
