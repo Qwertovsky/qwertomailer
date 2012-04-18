@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Address;
-import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -16,7 +15,6 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,13 +120,13 @@ public class Sender
 		}
 		
 		//create messages
-		ArrayList<MimeMessage> messages = new ArrayList<MimeMessage>();
+		ArrayList<Message> messages = new ArrayList<Message>();
 		if(recipientType == Method.PERSON)
 		{
 			logger.info("Create personal messages");
 			for(Address emailTo:emailsTo)
 			{
-				MimeMessage message = new MimeMessage(session);
+				Message message = new Message(session);
 				try
 				{
 					makeMessage(message, mailMessage);
@@ -169,7 +167,7 @@ public class Sender
 					toIndex = emailsTo.size();
 				Address[] recipients = emailsTo.subList(fromIndex, toIndex).toArray(new Address[0]);
 				
-				MimeMessage message = new MimeMessage(session);
+				Message message = new Message(session);
 				
 				try
 				{
@@ -220,7 +218,7 @@ public class Sender
 	}
 	
 	//-----------------------------------------------
-	private void makeMessage(MimeMessage message, MessageContent mailMessage) throws MessagingException
+	private void makeMessage(Message message, MessageContent mailMessage) throws MessagingException
 	{
 		Object content = mailMessage.getContent();
 		String contentType = null;
