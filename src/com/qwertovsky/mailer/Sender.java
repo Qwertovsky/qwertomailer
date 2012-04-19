@@ -50,11 +50,11 @@ public class Sender
 
 	/**
 	 * Create Sender class
-	 * @param smtpHostName - SMTP server
-	 * @param smtpPort - SMTP server port (default 25)
-	 * @param smtpUser - SMTP server account
-	 * @param smtpPassword - SMTP server password
-	 * @param hostname - local machine name
+	 * @param smtpHostName SMTP server
+	 * @param smtpPort SMTP server port (default 25)
+	 * @param smtpUser SMTP server account
+	 * @param smtpPassword SMTP server password
+	 * @param hostname local machine name
 	 * @throws Exception SMTP server is not specified (NULL or empty)
 	 */
 	public Sender(String smtpHostName, String smtpPort, String smtpUser,
@@ -80,8 +80,8 @@ public class Sender
 		
 	//-----------------------------------------------
 	/**
-	 * @param messageContent - message body
-	 * @param emailsTo - list of recipients
+	 * @param messageContent message body
+	 * @param emailsTo list of recipients
 	 * @throws Exception
 	 * @throws NoSuchProviderException
 	 */

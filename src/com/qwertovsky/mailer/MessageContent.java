@@ -48,7 +48,7 @@ public class MessageContent
 	 * Create message from EML file.<br />
 	 * Only content, content type and subject will be get from file.<br />
 	 * Not allow create message with no subject or with empty subject. 
-	 * @param EMLFile - file contains message in EML file format
+	 * @param EMLFile file contains message in EML file format
 	 * @throws Exception EML file not exists, EML file is null, Bad subject
 	 * @throws IOException can't read file
 	 * @throws MessagingException
@@ -90,9 +90,9 @@ public class MessageContent
 	/**
 	 * Create message.<br />
 	 * Not allow create message with no subject or with empty subject
-	 * @param content
-	 * @param contentType - Mime type of content
-	 * @param charset - encoding of content (default is "utf-8")
+	 * @param content 
+	 * @param contentType Mime type of content
+	 * @param charset encoding of content (default is "utf-8")
 	 * @throws Exception if content is null or content is empty text line
 	 * 	, rise exception with message "Bad content"
 	 *  <br />- if content type is null or content type is empty text line, message "Bad ContentType"
@@ -160,7 +160,7 @@ public class MessageContent
 	//--------------------------------------------
 	/**
 	 * Add files to message
-	 * @param attachments - list of files
+	 * @param attachments list of files
 	 * @throws MessagingException
 	 */
 	public void addAttachments(List<File> attachments) throws MessagingException
@@ -230,9 +230,9 @@ public class MessageContent
 	 * Add inline attachment to message<br />
 	 * Change html content to multipart/related.<br />
 	 * Replace path in 'src'-attribute to "cid:content-id"<br />
-	 * Return content-id 
-	 * @param path - file path from image attribute 'src' (&lt;img src="<b>path</b>" /&gt;) 
-	 * @return Content-ID of attachment
+	 * Return &lt;content-id&gt; 
+	 * @param path file path from image attribute 'src' (&lt;img src="<b>path</b>" /&gt;) 
+	 * @return Content-ID of attachment with &lt; &gt;
 	 * @throws MessagingException
 	 * @throws IOException
 	 * @throws IOException Inline image url is null or empty
@@ -746,8 +746,8 @@ public class MessageContent
 	//--------------------------------------------
 	/**
 	 * Add alternative text for email clients, that do not support HTML message
-	 * @param text - plain text
-	 * @param charset - encoding
+	 * @param text plain text
+	 * @param charset encoding
 	 * @throws MessagingException
 	 * @throws IOException
 	 */

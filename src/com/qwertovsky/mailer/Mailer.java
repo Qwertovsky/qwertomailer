@@ -29,7 +29,7 @@ import org.apache.log4j.PatternLayout;
  * @author Qwertovsky
  *
  */
-public class Mailer
+class Mailer
 {
 	public static Logger logger = Logger.getLogger("com.qwertovsky.mailer");
 	

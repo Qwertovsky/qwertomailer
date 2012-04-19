@@ -8,7 +8,7 @@ import javax.mail.internet.MimeMessage;
  * @author Qwertovsky
  *
  */
-public class Message extends MimeMessage
+class Message extends MimeMessage
 {
 	public Message(Session session)
 	{

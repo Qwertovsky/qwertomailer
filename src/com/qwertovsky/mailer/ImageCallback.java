@@ -13,7 +13,7 @@ import javax.swing.text.html.HTMLEditorKit.ParserCallback;
  * @author Qwertovsky
  *
  */
-public class ImageCallback extends ParserCallback
+class ImageCallback extends ParserCallback
 {
 	private List<String> paths = new ArrayList<String>();
 	
