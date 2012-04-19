@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project default="test" name="test">
+	<target name="config">
+        <property file="build.properties"/>
+		<path id="libPath">
+			<pathelement path="${log4j-jar}"/>
+			<pathelement path="${javamail-jar}"/>
+			<pathelement path="${slf4j-api-jar}"/>
+			<pathelement path="${slf4j-log4j-jar}"/>
+			<pathelement path="${commons-cli-jar}"/>
+			<pathelement path="${junit-jar}"/>
+		</path>
+    </target>
+	<target name="test" depends="config">
+		<junit haltonfailure="true" haltonerror="true">
+			<classpath>
+				<pathelement path="./bin" />
+				<path refid="libPath"/>
+			</classpath>
+			<formatter type ="plain" />
+			<test name="com.qwertovsky.mailer.MessageContentSSSSTest" outfile="TestResultMessageContentSSSS"/>
+			<test name="com.qwertovsky.mailer.MessageContentTest" outfile="TestResultMessageContent"/>
+			<test name="com.qwertovsky.mailer.SenderTest" outfile="TestResultSender"/>
+		</junit>
+	</target>
+</project>

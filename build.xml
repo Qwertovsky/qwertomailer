@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build" name="Create Runnable Jar for Project QwertoMailer">
+
+    <target name="config">
+        <property file="build.properties"/>
+		<path id="libPath">
+			<pathelement path="${log4j-jar}"/>
+			<pathelement path="${javamail-jar}"/>
+			<pathelement path="${slf4j-api-jar}"/>
+			<pathelement path="${slf4j-log4j-jar}"/>
+			<pathelement path="${commons-cli-jar}"/>
+			<pathelement path="${junit-jar}"/>
+		</path>
+    </target>
+	
+	<target name="clean">
+		<delete dir="bin" />
+		<delete>
+			<fileset dir="build" excludes="*.zip" />
+		</delete>
+		<delete dir="doc" />
+	</target>
+	
+	<target name="compile" depends="config,clean">
+		<mkdir dir="bin" />
+		<javac srcdir="src"
+			encoding="utf-8"
+			classpathref="libPath"
+			includeAntRuntime="false"
+			destdir="bin"
+			debug="true"
+		/>
+	</target>
+	
+	<target name="test" depends="config,compile">
+		<junit haltonfailure="true" haltonerror="true">
+			<classpath>
+				<pathelement path="./bin" />
+				<path refid="libPath"/>
+			</classpath>
+			<formatter type ="plain" />
+			<test name="com.qwertovsky.mailer.MessageContentSSSSTest" outfile="TestResultMessageContentSSSS"/>
+			<test name="com.qwertovsky.mailer.MessageContentTest" outfile="TestResultMessageContent"/>
+			<test name="com.qwertovsky.mailer.SenderTest" outfile="TestResultSender"/>
+		</junit>
+	</target>
+	
+	<target name="javadoc" depends="config">
+		<javadoc access="public" 
+			author="true"
+			classpathref="libPath"
+			destdir="doc"
+			nodeprecated="false"
+			nodeprecatedlist="false"
+			noindex="false"
+			nonavbar="false"
+			notree="false"
+			source="1.6"
+			sourcepath="src"
+			splitindex="true"
+			use="true"
+			version="true" />
+	</target>
+	
+	<target name="build" depends="compile,javadoc">
+		<mkdir dir="build" />
+		<mkdir dir="build/lib" />
+        <copy file="${javamail-jar}" todir="build/lib" />
+        <copy file="${log4j-jar}" todir="build/lib" />
+    	<copy file="${commons-cli-jar}" todir="build/lib" />
+    	<copy file="${slf4j-api-jar}" todir="build/lib" />
+    	<copy file="${slf4j-log4j-jar}" todir="build/lib" />
+		<copy todir="build/doc">
+			<fileset dir="doc" />
+		</copy>
+		<copy todir="build/src">
+			<fileset dir="src">
+				<exclude name="**/Mailer.java" />
+			</fileset>
+		</copy>
+		
+		<path id="build.classpath">
+			<fileset dir="build/lib" >
+				<include name="**/*.jar"/>
+			</fileset>
+		</path>
+		<manifestclasspath property="jar-classpath"
+                       jarfile="build/qwertomailer.jar">
+			<classpath refid="build.classpath" />
+		</manifestclasspath>
+		<tstamp>
+			<format property="application.build.date" pattern="yyyy-MM-dd HH:mm:ss" />
+		</tstamp>
+		<exec executable="git" outputproperty="git_ver" logError="true">
+			<arg value="describe" />
+			<arg value="--tags" />
+		</exec>
+    	<exec executable="git" outputproperty="git_date">
+    		<arg value="show" />
+    		<arg value="-s" />
+    		<arg value="--format=&quot;%ci&quot;" />
+    	</exec>
+        <jar destfile="build/qwertomailer.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="com.qwertovsky.mailer.Mailer"/>
+                <attribute name="Class-Path" value=". ${jar-classpath}" />
+				<attribute name="Built-Date" value="${application.build.date}"/> 
+				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
+            </manifest>
+            <fileset dir="bin" />
+        </jar>
+		
+		<zip destfile="build/qwertomailer-${git_ver}.zip" 
+			basedir="build"
+			excludes="*.zip"
+		/>
+    </target>
+</project>
