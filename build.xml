@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build" name="Create Runnable Jar for Project QwertoMailer">
-
+	<scriptdef name="substring" language="javascript">
+     <attribute name="text" />
+     <attribute name="start" />
+     <attribute name="property" />
+     <![CDATA[
+       var text = attributes.get("text");
+       var start = attributes.get("start");
+       project.setProperty(attributes.get("property"), text.substring(start));
+     ]]>
+	</scriptdef>
+	
     <target name="config">
         <property file="build.properties"/>
 		<path id="libPath">
@@ -95,6 +105,7 @@
 			<arg value="describe" />
 			<arg value="--tags" />
 		</exec>
+		
     	<exec executable="git" outputproperty="git_date">
     		<arg value="show" />
     		<arg value="-s" />
@@ -110,6 +121,7 @@
             <fileset dir="bin" />
         </jar>
 		
+		<substring text="${git_ver}" start="1"  property="git_ver" />
 		<zip destfile="build/qwertomailer-${git_ver}.zip" 
 			basedir="build"
 			excludes="*.zip"
