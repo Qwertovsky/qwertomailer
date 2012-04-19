@@ -3,9 +3,12 @@ package com.qwertovsky.mailer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
@@ -58,6 +61,19 @@ class Mailer
 		
 		logger.info("---------------------------------------");
 		logger.info("Program started");
+		InputStream manifestStream = Thread.currentThread().getContextClassLoader()
+			.getResourceAsStream("META-INF/MANIFEST.MF");
+		try
+		{
+			Manifest manifest = new Manifest(manifestStream);
+			Attributes attributes = manifest.getMainAttributes();
+			String impVersion = attributes.getValue("Implementation-Version");
+			String builtDate = attributes.getValue("Built-Date");
+			logger.info("Built date: " + builtDate +", Version: "+impVersion);
+		} catch (IOException ex)
+		{
+			logger.warn("Error while reading version: " + ex.getMessage());
+		}
 		
 	    //options
 		Options options = createOptions();
