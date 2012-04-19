@@ -489,6 +489,7 @@ class Mailer
 				.hasArg()
 				.create("subjectFile");
 		OptionGroup ogSubject = new OptionGroup();
+		ogSubject.setRequired(true);
 		ogSubject.addOption(oSubject);
 		ogSubject.addOption(oSubjectFile);
 		
