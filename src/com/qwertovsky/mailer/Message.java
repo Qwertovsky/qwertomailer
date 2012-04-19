@@ -4,6 +4,10 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
+/**
+ * @author Qwertovsky
+ *
+ */
 public class Message extends MimeMessage
 {
 	public Message(Session session)

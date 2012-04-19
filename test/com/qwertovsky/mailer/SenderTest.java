@@ -17,6 +17,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+/**
+ * @author Qwertovsky
+ *
+ */
 @RunWith(value = Parameterized.class)
 public class SenderTest
 {	

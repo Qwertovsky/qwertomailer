@@ -8,6 +8,11 @@ import javax.swing.text.html.HTML.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLEditorKit.ParserCallback;
 
+/**
+ * Search IMG tag and return list of SRC attributes
+ * @author Qwertovsky
+ *
+ */
 public class ImageCallback extends ParserCallback
 {
 	private List<String> paths = new ArrayList<String>();
