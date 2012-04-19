@@ -44,7 +44,10 @@ class Mailer
 	    DailyRollingFileAppender appender=null;
 	    try
 		{
-			appender = new DailyRollingFileAppender(layout, "qwertomailer.log", "'.'yyyy-MM-dd'.log'");
+			File logDir = new File("log");
+			if(!logDir.exists())
+				logDir.mkdir();
+	    	appender = new DailyRollingFileAppender(layout, "log/qwertomailer.log", "'.'yyyy-MM-dd'.log'");
 		} catch (IOException e)
 		{
 			logger.error(e.getMessage());
@@ -86,7 +89,7 @@ class Mailer
 		{
 			logger.error(pe.getMessage());
 			HelpFormatter helpFormatter = new HelpFormatter();
-			helpFormatter.printHelp("java -jar mailer.jar", options, true);
+			helpFormatter.printHelp("java -jar qwertomailer.jar", options, true);
 			System.exit(1);
 		}
 			
