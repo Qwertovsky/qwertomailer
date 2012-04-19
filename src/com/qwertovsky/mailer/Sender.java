@@ -48,6 +48,15 @@ public class Sender
 	
 
 
+	/**
+	 * Create Sender class
+	 * @param smtpHostName - SMTP server
+	 * @param smtpPort - SMTP server port (default 25)
+	 * @param smtpUser - SMTP server account
+	 * @param smtpPassword - SMTP server password
+	 * @param hostname - local machine name
+	 * @throws Exception SMTP server is not specified (NULL or empty)
+	 */
 	public Sender(String smtpHostName, String smtpPort, String smtpUser,
 			String smtpPassword, String hostname) throws Exception
 	{
@@ -70,12 +79,19 @@ public class Sender
 	}
 		
 	//-----------------------------------------------
-	public void send(MessageContent mailMessage, List<Address> emailsTo) throws Exception
+	/**
+	 * @param messageContent - message body
+	 * @param emailsTo - list of recipients
+	 * @throws Exception
+	 * @throws NoSuchProviderException
+	 */
+	public void send(MessageContent messageContent, List<Address> emailsTo)
+		throws Exception, NoSuchProviderException
 	{
-		if(mailMessage == null)
+		if(messageContent == null)
 			throw new Exception("Message is not created");
-		String charset = mailMessage.getCharset();
-		Address from = mailMessage.getAddressFrom();
+		String charset = messageContent.getCharset();
+		Address from = messageContent.getAddressFrom();
 		if(from == null)
 			throw new Exception("Bad email in FROM");
 	
@@ -129,11 +145,11 @@ public class Sender
 				Message message = new Message(session);
 				try
 				{
-					makeMessage(message, mailMessage);
+					makeMessage(message, messageContent);
 					message.setRecipient(RecipientType.TO, emailTo);
 				} catch (MessagingException e)
 				{
-					logger.warn("Message is not created for "+ emailTo + "("+e.getMessage()+")");
+					logger.warn("Message has not been created for "+ emailTo + "("+e.getMessage()+")");
 					continue;
 				}
 				messages.add(message);
@@ -171,7 +187,7 @@ public class Sender
 				
 				try
 				{
-					makeMessage(message, mailMessage);
+					makeMessage(message, messageContent);
 					message.setRecipients(rt, recipients);
 					//set header TO for CC and BCC method
 					if((recipientType == Method.CC || recipientType == Method.BCC)
@@ -183,8 +199,8 @@ public class Sender
 				} catch (MessagingException e)
 				{
 					System.err.println(e.getMessage());
-					logger.error("Message is not created:" + e.getMessage());
-					return;
+					logger.error("Message has not been created:" + e.getMessage());
+					throw new Exception("Message has not been created:" + e.getMessage());
 				}
 				messages.add(message);
 				
@@ -200,9 +216,18 @@ public class Sender
 			try
 			{
 				Transport.send(message);
-				File file = new File(i+".eml");
-				message.writeTo(new FileOutputStream(file));
-				i++;
+				if(logger.isTraceEnabled())
+				{
+					String messageId = message.getMessageID();
+					messageId = messageId.substring(1, messageId.length()-1);
+					File dir = new File("messages");
+					if(!dir.exists())
+						dir.mkdir();
+					File file = new File("messages/" + messageId + ".eml");
+					message.writeTo(new FileOutputStream(file));
+					i++;
+					logger.trace("Message has been send: " + messageId);
+				}
 			} catch (MessagingException e)
 			{
 				StringBuilder sb = new StringBuilder("Error send message to: ");
@@ -231,20 +256,17 @@ public class Sender
 		String charset = mailMessage.getCharset();
 		String contentTransferEncoding = mailMessage.getContentTransferEncoding();
 		
-		try
-		{
-			message.setFrom(from);
-			message.setContent(content, contentType);
-			message.setSubject(subject, charset);
-			message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
-		}
-		catch (MessagingException e)
-		{
-			throw e;
-		}
+		message.setFrom(from);
+		message.setContent(content, contentType);
+		message.setSubject(subject, charset);
+		message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
 	}
 	
 	//-----------------------------------------------
+	/**
+	 * Specify send method (TO, CC, BCC or PERSON)
+	 * @param recipientType
+	 */
 	public void setRecipientType(String recipientType)
 	{
 		if(recipientType != null)
@@ -255,6 +277,13 @@ public class Sender
 	}
 
 	//--------------------------------------------
+	/**
+	 * For TO, CC send methods.
+	 * <br />Instead of one message to all recipients,
+	 * some messages will be send  to groups of recipients.
+	 * Max count of recipients in group is <code>maxRecipients</code>.
+	 * @param maxRecipients
+	 */
 	public void setMaxRecipientsPerMessage(int maxRecipients)
 	{
 		this.maxRecipients = maxRecipients;
@@ -262,6 +291,11 @@ public class Sender
 	}
 
 	//--------------------------------------------
+	/**
+	 * For CC, BCC send methods.
+	 * <br />Specify emails for header TO.
+	 * @param emailsToCC
+	 */
 	public void setEmailsToCC(ArrayList<Address> emailsToCC)
 	{
 		this.emailsToCC = emailsToCC;

@@ -14,7 +14,7 @@ public class Message extends MimeMessage
 	protected void updateMessageID() throws MessagingException
 	{
 		String host = session.getProperty("mail.smtp.host");
-		String messageId = this.hashCode() + "." + System.currentTimeMillis();
+		String messageId = System.currentTimeMillis() + "." + this.hashCode();
 		if(host != null)
 			messageId = messageId + "@" + host;
 		setHeader("Message-ID", "<"	+ messageId	+ ">");

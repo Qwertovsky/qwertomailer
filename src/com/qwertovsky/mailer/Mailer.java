@@ -135,7 +135,7 @@ public class Mailer
 					emailsTo.add(new InternetAddress(email));
 				}catch(AddressException ae)
 				{
-					logger.warn(ae.getMessage());
+					logger.warn(email + ":" + ae.getMessage());
 				}
 			}
 		}
@@ -208,7 +208,7 @@ public class Mailer
 					emailsToCC.add(new InternetAddress(email));
 				}catch(AddressException ae)
 				{
-					logger.warn(ae.getMessage());
+					logger.warn(email + ":" + ae.getMessage());
 				}
 			}
 		}
@@ -273,6 +273,7 @@ public class Mailer
 	//--------------------------------------------
 	private static String getMessageTextFromFile(String file, String charset)
 	{
+		logger.info("Get message text from file: " + file);
 		String text = null;
 		File textFile = new File(file);
 		try
@@ -288,13 +289,13 @@ public class Mailer
             text = textBuilder.toString();
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("Body file not exists");
-			logger.error("Body file not exists");
+			System.err.println("Body file not exists: " + file);
+			logger.error("Body file not exists: " + file);
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
-			System.err.println("Specified charset is not found");
-			logger.error("Specified charset is not found");
+			System.err.println("Specified charset is not found: " + charset);
+			logger.error("Specified charset is not found: " + charset);
 			System.exit(1);
 		}
             
@@ -304,6 +305,7 @@ public class Mailer
 	//--------------------------------------------
 	private static String getAltTextFromFile(String file, String charset)
 	{
+		logger.info("Get alternative text from file: " + file);
 		String text = null;
 		File textFile = new File(file);
 		try
@@ -319,13 +321,13 @@ public class Mailer
             text = textBuilder.toString();
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("Alttext file not exists");
-			logger.error("Alttext file not exists");
+			System.err.println("Alttext file not exists: " + file);
+			logger.error("Alttext file not exists: " + file);
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
-			System.err.println("Specified charset is not found");
-			logger.error("Specified charset is not found");
+			System.err.println("Specified charset is not found: " + charset);
+			logger.error("Specified charset is not found: " + charset);
 			System.exit(1);
 		}
             
@@ -335,7 +337,7 @@ public class Mailer
 	//--------------------------------------------
 	private static String getSubjectFromFile(String file, String charset)
 	{
-		logger.info("Get subject from file");
+		logger.info("Get subject from file: " + file);
 		String subject = null;
 		File subjectFile = new File(file);
 		try
@@ -345,19 +347,19 @@ public class Mailer
             	subject = scanner.nextLine();
             else
             {
-            	System.err.println("Subject file is empty");
-            	logger.error("Subject file is empty");
+            	System.err.println("Subject file is empty: " + file);
+            	logger.error("Subject file is empty: " + file);
 				System.exit(1);
             }
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("Subject file not exists");
-			logger.error("Subject file not exists");
+			System.err.println("Subject file not exists: " + file);
+			logger.error("Subject file not exists: " + file);
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
-			System.err.println("Specified charset is not found");
-			logger.error("Specified charset is not found");
+			System.err.println("Specified charset is not found: " + charset);
+			logger.error("Specified charset is not found: " + charset);
 			System.exit(1);
 		}
 		return subject;
@@ -366,7 +368,7 @@ public class Mailer
 	//--------------------------------------------
 	private static ArrayList<Address> getEmailsFromFile(String file)
 	{
-		logger.info("Get emails from file");
+		logger.info("Get emails from file: " + file);
 		ArrayList<Address> emailsTo = new ArrayList<Address>();
 		File emailsFile = new File(file);
 		try
@@ -385,8 +387,8 @@ public class Mailer
             }
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("File with emails not exists");
-			logger.error("File with emails not exists");
+			System.err.println("File with emails not exists: " + file);
+			logger.error("File with emails not exists: " + file);
 			System.exit(1);
 		}
             
@@ -396,7 +398,7 @@ public class Mailer
 	//--------------------------------------------
 	private static List<File> getAttachFilesFromFile(String file)
 	{
-		logger.info("Get attach files from file");
+		logger.info("Get attach files from file: " + file);
 		List<File> files = new ArrayList<File>();
 		File attachFiles = new File(file);
 		try
@@ -409,8 +411,8 @@ public class Mailer
             }
 		} catch (FileNotFoundException e)
 		{
-			System.err.println("File with attachments not exists");
-			logger.error("File with attachments not exists");
+			System.err.println("File with attachments not exists: " + file);
+			logger.error("File with attachments not exists: " + file);
 			System.exit(1);
 		}
             
