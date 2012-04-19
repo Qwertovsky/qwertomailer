@@ -12,6 +12,10 @@ import javax.mail.internet.InternetAddress;
 import org.junit.Test;
 
 
+/**
+ * @author Qwertovsky
+ *
+ */
 public class MessageContentTest
 {
 		
@@ -463,7 +467,7 @@ public class MessageContentTest
 				if(!htmlPart.getContentType().startsWith("text/html"))
 						fail("incorrect addInlineAttachments");
 				String html = (String) htmlPart.getContent();
-				if(!html.contains("\"cid:" + cid +"\""))
+				if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))	
 					fail("incorrect addInlineAttachments");
 				BodyPart file = ((Multipart)related).getBodyPart(1);
 				if(!file.getHeader("Content-ID")[0].equals(cid))
@@ -502,7 +506,7 @@ public class MessageContentTest
 					if(!htmlPart.getContentType().startsWith("text/html"))
 							fail("incorrect addInlineAttachments");
 					String html = (String) htmlPart.getContent();
-					if(!html.contains("\"cid:" + cid +"\""))
+					if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))
 						fail("incorrect addInlineAttachments");
 					BodyPart file = ((Multipart)related).getBodyPart(1);
 					if(!file.getFileName().equals("test.png"))
@@ -541,7 +545,7 @@ public class MessageContentTest
 				if(!htmlPart.getContentType().startsWith("text/html"))
 						fail("incorrect addInlineAttachments");
 				String html = (String) htmlPart.getContent();
-				if(!html.contains("\"cid:" + cid +"\""))
+				if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))
 					fail("incorrect addInlineAttachments");
 				BodyPart file = ((Multipart)related).getBodyPart(2);
 				if(!file.getFileName().equals("test.png"))
@@ -583,7 +587,7 @@ public class MessageContentTest
 					if(!htmlPart.getContentType().startsWith("text/html"))
 							fail("incorrect addInlineAttachments");
 					String html = (String) htmlPart.getContent();
-					if(!html.contains("\"cid:" + cid +"\""))
+					if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))
 						fail("incorrect addInlineAttachments");
 					BodyPart file = ((Multipart)related).getBodyPart(2);
 					if(!file.getFileName().equals("test.png"))
@@ -627,7 +631,7 @@ public class MessageContentTest
 					if(!htmlPart.getContentType().startsWith("text/html"))
 							fail("incorrect addInlineAttachments");
 					String html = (String) htmlPart.getContent();
-					if(!html.contains("\"cid:" + cid +"\""))
+					if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))
 						fail("incorrect addInlineAttachments");
 					BodyPart file = ((Multipart)related).getBodyPart(1);
 					if(!file.getFileName().equals("test.png"))
@@ -678,7 +682,7 @@ public class MessageContentTest
 						if(!htmlPart.getContentType().startsWith("text/html"))
 								fail("incorrect addInlineAttachments");
 						String html = (String) htmlPart.getContent();
-						if(!html.contains("\"cid:" + cid +"\""))
+						if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))
 							fail("incorrect addInlineAttachments");
 						BodyPart file = ((Multipart)related).getBodyPart(1);
 						if(!file.getFileName().equals("test.png"))
@@ -726,7 +730,7 @@ public class MessageContentTest
 					if(!htmlPart.getContentType().startsWith("text/html"))
 							fail("incorrect addInlineAttachments");
 					String html = (String) htmlPart.getContent();
-					if(!html.contains("\"cid:" + cid +"\""))
+					if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))
 						fail("incorrect addInlineAttachments");
 					BodyPart file = ((Multipart)related).getBodyPart(2);
 					if(!file.getFileName().equals("test.png"))
@@ -777,7 +781,7 @@ public class MessageContentTest
 						if(!htmlPart.getContentType().startsWith("text/html"))
 								fail("incorrect addInlineAttachments");
 						String html = (String) htmlPart.getContent();
-						if(!html.contains("\"cid:" + cid +"\""))
+						if(!html.contains("\"cid:" + cid.substring(1, cid.length()-1) +"\""))
 							fail("incorrect addInlineAttachments");
 						BodyPart file = ((Multipart)related).getBodyPart(2);
 						if(!file.getFileName().equals("test.png"))
