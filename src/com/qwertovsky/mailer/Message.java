@@ -17,6 +17,9 @@ class Message extends MimeMessage
 
 	protected void updateMessageID() throws MessagingException
 	{
+		String[] messageIdHeaders = getHeader("Message-ID");
+		if(messageIdHeaders !=null && messageIdHeaders.length > 0)
+			return;
 		String host = session.getProperty("mail.smtp.host");
 		String messageId = System.currentTimeMillis() + "." + this.hashCode();
 		if(host != null)

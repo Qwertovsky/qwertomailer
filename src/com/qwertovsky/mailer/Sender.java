@@ -215,6 +215,7 @@ public class Sender
 		{
 			try
 			{
+				message.saveChanges();
 				Transport.send(message);
 				if(logger.isTraceEnabled())
 				{

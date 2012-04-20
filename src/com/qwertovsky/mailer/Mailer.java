@@ -289,8 +289,17 @@ class Mailer
 			sender.send(message, emailsTo);
 		}catch(Exception e)
 		{
-			logger.error(e.getMessage());
-			System.err.println(e.getMessage());
+			String errorMessage = e.getMessage();
+			if(errorMessage != null)
+			{
+				logger.error(errorMessage);
+				System.err.println(errorMessage);
+			}
+			else
+			{
+				logger.error("Error",e);
+				System.err.println("Error");
+			}
 		}
 		logger.info("Program stoped");
 	}
