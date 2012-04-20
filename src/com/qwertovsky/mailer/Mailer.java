@@ -1,9 +1,14 @@
 package com.qwertovsky.mailer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -27,6 +32,8 @@ import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * @author Qwertovsky
@@ -104,6 +111,8 @@ class Mailer
 		String emailFrom = null;
 		String personFrom = null;
 		ArrayList<Address> emailsTo = new ArrayList<Address>();
+		ArrayList<String[]> personParameters = new ArrayList<String[]>();
+		String[] personParamHeaders = null;
 		
 		CommandLine commandLine = null;
 		try
@@ -177,7 +186,7 @@ class Mailer
 		else if(commandLine.hasOption("emailToFile"))
 		{
 			String file = commandLine.getOptionValue("emailToFile");
-			emailsTo = getEmailsFromFile(file);
+			personParamHeaders = getPersonParametersFromFile(personParameters, file, charset);
 		}
 		
 		String alttext = null;
@@ -376,33 +385,40 @@ class Mailer
 	}
 	
 	//--------------------------------------------
-	private static ArrayList<Address> getEmailsFromFile(String file)
+	private static String[] getPersonParametersFromFile(List<String[]> personParameters
+			, String file, String charset)
 	{
-		logger.info("Get emails from file: " + file);
-		ArrayList<Address> emailsTo = new ArrayList<Address>();
+		logger.info("Get person parameters from file: " + file);
+		String[] headers = null;
 		File emailsFile = new File(file);
+		CSVReader reader = null;
 		try
 		{
-			Scanner scanner = new Scanner(emailsFile);
-            while(scanner.hasNextLine())
-            {
-                String email = scanner.nextLine();
-                try
-                {
-                	emailsTo.add(new InternetAddress(email));
-                }catch(AddressException ae)
-                {
-                	logger.warn(email +": "+ ae.getMessage());
-                }
-            }
-		} catch (FileNotFoundException e)
+			FileInputStream fis = new FileInputStream(emailsFile);
+			InputStreamReader isr = new InputStreamReader(fis, charset);
+			reader=new CSVReader(isr, ';','"',false);
+			headers = reader.readNext();
+			personParameters.addAll(reader.readAll());
+			reader.close();
+		}catch (FileNotFoundException fnfe)
 		{
 			System.err.println("File with emails not exists: " + file);
 			logger.error("File with emails not exists: " + file);
 			System.exit(1);
+		}catch(UnsupportedEncodingException uee)
+		{
+			System.err.println("Specified charset is not found: " + charset);
+			logger.error("Specified charset is not found: " + charset);
+			System.exit(1);
 		}
-            
-		return emailsTo;
+		catch (IOException ioe)
+		{
+			System.err.println("Error read file with emails: " + file + " (" + ioe.getMessage() + ")");
+			logger.error("Error read file with emails: " + file + " (" + ioe.getMessage() + ")");
+			System.exit(1);
+		}
+		
+        return headers;
 	}
 
 	//--------------------------------------------
