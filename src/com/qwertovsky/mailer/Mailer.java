@@ -74,6 +74,15 @@ class Mailer
 		{
 			logger.warn("Error while reading version: " + ex.getMessage());
 		}
+		//write options
+		String optionsLine = "";
+		for(String arg:args)
+		{
+			if(arg.contains(" "))
+				arg = "\"" + arg +"\"";
+			optionsLine = optionsLine + " " + arg;
+		}
+		logger.info("Command line options: " + optionsLine);
 		
 	    //options
 		Options options = createOptions();
@@ -108,7 +117,7 @@ class Mailer
 			helpFormatter.printHelp("java -jar qwertomailer.jar", options, true);
 			System.exit(1);
 		}
-			
+		
 		if(commandLine.hasOption("trace"))
 		{
 			logger.setLevel(Level.TRACE);
