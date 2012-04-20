@@ -104,7 +104,6 @@ class Mailer
 		String emailFrom = null;
 		String personFrom = null;
 		ArrayList<Address> emailsTo = new ArrayList<Address>();
-		String recipientType = "PERSON";
 		
 		CommandLine commandLine = null;
 		try
@@ -181,8 +180,6 @@ class Mailer
 			emailsTo = getEmailsFromFile(file);
 		}
 		
-		recipientType = commandLine.getOptionValue("sendMethod","PERSON");
-		
 		String alttext = null;
 		boolean related = false;
 		if(contentType.equalsIgnoreCase("text/html"))
@@ -222,33 +219,6 @@ class Mailer
 			attachFiles = getAttachFilesFromFile(file);
 		}
 		
-		//get max number of recipients per message (for TO and CC)
-		int maxRecipients = 0;
-		if(commandLine.hasOption("emailToMaxPerMessage"))
-		{
-			String value = commandLine.getOptionValue("emailToMaxPerMessage");
-			if(value != null)
-				maxRecipients = Integer.valueOf(value);
-		}
-		
-		//get TO for CC/BCC send method
-		ArrayList<Address> emailsToCC = new ArrayList<Address>();
-		if((recipientType.equalsIgnoreCase("CC") || recipientType.equalsIgnoreCase("BCC"))
-				&& commandLine.hasOption("emailToCC"))
-		{
-			String[] emails = commandLine.getOptionValues("emailToCC");
-			for(String email:emails)
-			{
-				try
-				{
-					emailsToCC.add(new InternetAddress(email));
-				}catch(AddressException ae)
-				{
-					logger.warn(email + ":" + ae.getMessage());
-				}
-			}
-		}
-			
 		//create sender
 		Sender sender = null;
 		try
@@ -260,11 +230,6 @@ class Mailer
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
-		sender.setRecipientType(recipientType);
-		if(maxRecipients > 0)
-			sender.setMaxRecipientsPerMessage(maxRecipients);
-		if(emailsToCC != null && !emailsToCC.isEmpty())
-			sender.setEmailsToCC(emailsToCC);
 		
 		//create message
 		MessageContent message = null;
@@ -548,11 +513,6 @@ class Mailer
 		ogEmailTo.addOption(oEmailTo);
 		ogEmailTo.addOption(oEmailToFile);
 		
-		Option oSendMethod = OptionBuilder.withArgName("method")
-				.withDescription("method of sending a message to multiple recipients (to/cc/bcc/person)")
-				.hasArg()
-				.isRequired()
-				.create("sendMethod");
 		Option oPersonFrom = OptionBuilder.withArgName("person")
 				.withDescription("specify sender name")
 				.hasArg()
@@ -590,15 +550,6 @@ class Mailer
 		
 		Option oRelated = new Option("related","Create message with inline images");
 		
-		Option oEmailToMaxPerMessage = OptionBuilder.withArgName("number")
-				.withDescription("for to/cc method number of recipients per message")
-				.hasArgs()
-				.create("emailToMaxPerMessage");
-		Option oEmailToCC = OptionBuilder.withArgName("emails")
-				.withDescription("emails for header TO when send method is CC or BCC (comma separated)")
-				.hasArgs()
-				.withValueSeparator(',')
-				.create("emailToCC");
 		Option oTrace = OptionBuilder
 				.withDescription("Set trace log level. Send messages will be saved on disk")
 				.create("trace");
@@ -615,10 +566,7 @@ class Mailer
 		options.addOptionGroup(ogSubject);
 		options.addOption(oEmailFrom);
 		options.addOptionGroup(ogEmailTo);
-		options.addOption(oSendMethod);
 		options.addOption(oPersonFrom);
-		options.addOption(oEmailToMaxPerMessage);
-		options.addOption(oEmailToCC);
 		options.addOptionGroup(ogAttach);
 		options.addOptionGroup(ogAltText);
 		options.addOption(oRelated);

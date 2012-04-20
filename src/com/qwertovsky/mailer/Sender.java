@@ -34,18 +34,10 @@ public class Sender
 	private String smtpUser;
 	private String smtpPassword;
 	private String hostname;
-	private Method recipientType = Method.PERSON;
-	private int maxRecipients = 0;
-	private ArrayList<Address> emailsToCC = null;
 	
 	private Properties mailProp;
 	
-	
-	public enum Method {TO, CC, BCC, PERSON};
-	
 	final Logger logger = LoggerFactory.getLogger(Sender.class);
-	
-	
 
 
 	/**
@@ -137,75 +129,20 @@ public class Sender
 		
 		//create messages
 		ArrayList<Message> messages = new ArrayList<Message>();
-		if(recipientType == Method.PERSON)
+		logger.info("Create personal messages");
+		for(Address emailTo:emailsTo)
 		{
-			logger.info("Create personal messages");
-			for(Address emailTo:emailsTo)
+			Message message = new Message(session);
+			try
 			{
-				Message message = new Message(session);
-				try
-				{
-					makeMessage(message, messageContent);
-					message.setRecipient(RecipientType.TO, emailTo);
-				} catch (MessagingException e)
-				{
-					logger.warn("Message has not been created for "+ emailTo + "("+e.getMessage()+")");
-					continue;
-				}
-				messages.add(message);
-			}
-		}
-		else
-		{
-			logger.info("Create messages");
-			
-			RecipientType rt = null;
-			if(recipientType == Method.TO)
-				rt = RecipientType.TO;
-			if(recipientType == Method.CC)
-				rt = RecipientType.CC;
-			if(recipientType == Method.BCC)
-				rt = RecipientType.BCC;
-			
-			//create messages 
-			if(maxRecipients == 0 || recipientType == Method.BCC)
+				makeMessage(message, messageContent);
+				message.setRecipient(RecipientType.TO, emailTo);
+			} catch (MessagingException e)
 			{
-				maxRecipients = emailsTo.size();
+				logger.warn("Message has not been created for "+ emailTo + "("+e.getMessage()+")");
+				continue;
 			}
-			
-			int position = 0;
-			while(position < emailsTo.size())
-			{
-				//get recipients array
-				int fromIndex = position;
-				int toIndex = position + maxRecipients;
-				if(toIndex > emailsTo.size())
-					toIndex = emailsTo.size();
-				Address[] recipients = emailsTo.subList(fromIndex, toIndex).toArray(new Address[0]);
-				
-				Message message = new Message(session);
-				
-				try
-				{
-					makeMessage(message, messageContent);
-					message.setRecipients(rt, recipients);
-					//set header TO for CC and BCC method
-					if((recipientType == Method.CC || recipientType == Method.BCC)
-							&& emailsToCC != null && !emailsToCC.isEmpty())
-					{
-						Address[] emails = emailsToCC.toArray(new Address[0]);
-						message.setRecipients(RecipientType.TO, emails);
-					}
-				} catch (MessagingException e)
-				{
-					System.err.println(e.getMessage());
-					logger.error("Message has not been created:" + e.getMessage());
-					throw new Exception("Message has not been created:" + e.getMessage());
-				}
-				messages.add(message);
-				
-				position = position + maxRecipients;
-			}
+			messages.add(message);
 		}
 		
 		//send messages
@@ -267,46 +204,6 @@ public class Sender
 		message.setContent(content, contentType);
 		message.setSubject(subject, charset);
 		message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
-	}
-	
-	//-----------------------------------------------
-	/**
-	 * Specify send method (TO, CC, BCC or PERSON)
-	 * @param recipientType
-	 */
-	public void setRecipientType(String recipientType)
-	{
-		if(recipientType != null)
-		{
-			Method sendMethod = Method.valueOf(recipientType.toUpperCase());
-			this.recipientType = sendMethod;
-		}
-	}
-
-	//--------------------------------------------
-	/**
-	 * For TO, CC send methods.
-	 * <br />Instead of one message to all recipients,
-	 * some messages will be send  to groups of recipients.
-	 * Max count of recipients in group is <code>maxRecipients</code>.
-	 * @param maxRecipients
-	 */
-	public void setMaxRecipientsPerMessage(int maxRecipients)
-	{
-		this.maxRecipients = maxRecipients;
-		
-	}
-
-	//--------------------------------------------
-	/**
-	 * For CC, BCC send methods.
-	 * <br />Specify emails for header TO.
-	 * @param emailsToCC
-	 */
-	public void setEmailsToCC(ArrayList<Address> emailsToCC)
-	{
-		this.emailsToCC = emailsToCC;
-		
 	}
 	
 }
