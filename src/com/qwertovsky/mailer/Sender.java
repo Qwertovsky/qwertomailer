@@ -226,17 +226,23 @@ public class Sender
 					File file = new File("messages/" + messageId + ".eml");
 					message.writeTo(new FileOutputStream(file));
 					i++;
-					logger.trace("Message has been send: " + messageId);
+					StringBuilder sb = new StringBuilder("");
+					//append all recipients to message
+					for(Address a:message.getAllRecipients())
+					{
+						sb.append(((InternetAddress)a).getAddress() +", ");
+					}
+					logger.trace("Message " + messageId +" has been send to: " + sb.toString());
 				}
 			} catch (MessagingException e)
 			{
-				StringBuilder sb = new StringBuilder("Error send message to: ");
+				StringBuilder sb = new StringBuilder("Error ("+ e.getMessage() +") send message to: ");
 				//append all recipients to message
 				for(Address a:message.getAllRecipients())
 				{
 					sb.append(((InternetAddress)a).getAddress() +", ");
 				}
-				logger.warn(sb.toString() + e.getMessage());
+				logger.warn(sb.toString());
 			}
 		}
 		logger.info("End sending");

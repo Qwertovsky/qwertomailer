@@ -109,6 +109,10 @@ class Mailer
 			System.exit(1);
 		}
 			
+		if(commandLine.hasOption("trace"))
+		{
+			logger.setLevel(Level.TRACE);
+		}
 		smtpHost = commandLine.getOptionValue("smtpHost");
 		smtpPort = commandLine.getOptionValue("smtpPort", "25");
 		smtpUser = commandLine.getOptionValue("smtpUser");
@@ -577,6 +581,9 @@ class Mailer
 				.hasArgs()
 				.withValueSeparator(',')
 				.create("emailToCC");
+		Option oTrace = OptionBuilder
+				.withDescription("Set trace log level. Send messages will be saved on disk")
+				.create("trace");
 				
 		options.addOption(oSmtpHost);
 		options.addOption(oSmtpPort);
@@ -597,6 +604,7 @@ class Mailer
 		options.addOptionGroup(ogAttach);
 		options.addOptionGroup(ogAltText);
 		options.addOption(oRelated);
+		options.addOption(oTrace);
 		return options;
 	}
 
