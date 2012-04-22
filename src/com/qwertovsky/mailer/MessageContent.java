@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -29,6 +30,9 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.ParseException;
 import javax.swing.text.html.parser.ParserDelegator;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+
 /**
  * Message with content, content type, charset
  * , contentTransferEncoding, subject and sender address
@@ -44,6 +48,44 @@ public class MessageContent
 	private String charset = "UTF-8";
 	private String contentTransferEncoding = "8bit";
 	
+	//--------------------------------------------
+	/**
+	 * Create copy of MessageContent object
+	 * @param messageContent source object
+	 * @throws MessagingException
+	 */
+	public MessageContent (MessageContent messageContent) throws MessagingException
+	{
+		Object newContent = messageContent.getContent();
+		if(newContent instanceof String)
+			this.content = new String((String) newContent);
+		else if(newContent instanceof Multipart)
+		{
+			ContentType ct = new ContentType(((Multipart)newContent).getContentType());
+			String subType = ct.getSubType();
+			Multipart multipart = new MimeMultipart(subType);
+			//add parts
+			for(int i=0; i < ((Multipart)newContent).getCount();i++)
+			{
+				multipart.addBodyPart(((Multipart)newContent).getBodyPart(i));
+			}
+			this.content = multipart;
+		}
+		InternetAddress address = (InternetAddress) messageContent.getAddressFrom();
+		try
+		{
+			this.addressFrom = new InternetAddress(address.getAddress(), address.getPersonal());
+		} catch (UnsupportedEncodingException e)
+		{
+			// never
+		}
+		this.charset = new String(messageContent.getCharset());
+		this.contentType = new String(messageContent.getContentType());
+		this.contentTransferEncoding = new String(messageContent.getContentTransferEncoding());
+		
+	}
+	
+	//--------------------------------------------
 	/**
 	 * Create message from EML file.<br />
 	 * Only content, content type and subject will be get from file.<br />
@@ -846,40 +888,412 @@ public class MessageContent
 		}
 			
 	}
+	
 	//--------------------------------------------
 	public void setContentTransferEncoding(String contentTransferEncoding)
 	{
 		if(contentTransferEncoding != null && contentTransferEncoding.length() != 0)
 			this.contentTransferEncoding = contentTransferEncoding;
 	}
+	
 	//--------------------------------------------
 	public String getCharset()
 	{
 		return charset;
 	}
+	
 	//--------------------------------------------
 	public Object getContent()
 	{
 		return content;
 	}
+	
 	//--------------------------------------------
 	public String getContentType()
 	{
 		return contentType;
 	}
+	
 	//--------------------------------------------
 	public String getSubject()
 	{
 		return subject;
 	}
+	
 	//--------------------------------------------
 	public Address getAddressFrom()
 	{
 		return addressFrom;
 	}
+	
 	//--------------------------------------------
 	public String getContentTransferEncoding()
 	{
 		return contentTransferEncoding;
 	}
+
+	//--------------------------------------------
+	public void setParameters(String[] headers, String[] parameters)
+	{
+		VelocityContext context = new VelocityContext();
+		for(int i=0; i < headers.length; i++)
+		{	
+			if(headers[i] == null || headers[i].length() == 0)
+				continue;
+			context.put(headers[i], parameters[i]);
+		}
+		if(content instanceof Multipart
+				&& ((Multipart)content).getContentType().startsWith("multipart/mixed"))
+		{
+			//get and replace html part of message
+			Object body = ((Multipart)content).getBodyPart(0).getContent();
+			if(body instanceof Multipart
+					&& ((Multipart)body).getContentType().startsWith("multipart/alternative"))
+			{
+				//get main part (html or related)
+				Object mainPart = ((Multipart)body).getBodyPart(1).getContent();
+				if(mainPart instanceof Multipart)
+				{
+					/*
+					 * -mixed
+					 * \-alternative (body)
+					 * 		\-text
+					 * 		|-related (mainPart)
+					 * 			\-html
+					 * 			|-attachment
+					 * |-attachments
+					 */
+					
+					//replace html
+					String html = (String)  ((Multipart)mainPart).getBodyPart(0).getContent();
+					StringWriter mailBody = new StringWriter();
+					Template template = new Template();
+					template.setData(html);
+					template.merge(context, mailBody);
+					mailBody.flush();
+					mailBody.close();
+					html = mailBody.toString();
+					MimeBodyPart htmlPart = new MimeBodyPart();
+					htmlPart.setContent(html, ((Multipart)mainPart).getBodyPart(0).getContentType());
+					htmlPart.setHeader("Content-Type", ((Multipart)mainPart).getBodyPart(0).getContentType());
+					htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+					((Multipart)mainPart).removeBodyPart(0);
+					((Multipart)mainPart).addBodyPart(htmlPart, 0);
+					//replace related
+					MimeBodyPart bodyPart = new MimeBodyPart();
+					bodyPart.setContent(((Multipart)mainPart));
+					((Multipart)body).removeBodyPart(1);
+					((Multipart)body).addBodyPart(bodyPart);
+					
+					//replace body
+					((Multipart)content).removeBodyPart(0);
+					bodyPart = new MimeBodyPart();
+					bodyPart.setContent(((Multipart)body));
+					((Multipart)content).addBodyPart(bodyPart, 0);
+				}
+				else
+				{
+					/*
+					 * -mixed
+					 * \-alternative (body)
+					 * 		\-text
+					 * 		|-html (will be changed to related)
+					 * |-attachments
+					 */
+					//create new alternative
+					Multipart alternative = new MimeMultipart("alternative");
+					//add palin part
+					alternative.addBodyPart(((Multipart)body).getBodyPart(0));
+					
+					//get and replace html part to multipart/related
+					//create multipart/related
+					Multipart related = new MimeMultipart("related");
+					//add attachment
+					MimeBodyPart attachPart = new MimeBodyPart();
+					File attachment = new File(path);
+					DataSource source = new FileDataSource(attachment);
+					attachPart.setDataHandler(new DataHandler(source));
+					attachPart.setFileName(attachment.getName());
+					attachPart.setDisposition(MimeBodyPart.INLINE);
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					attachPart.setHeader("Content-Type",mimeType);
+					attachPart.setContentID("<" + attachment.getName()
+							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
+					related.addBodyPart(attachPart);
+					//add html
+					String html = (String)  ((Multipart)body).getBodyPart(1).getContent();
+					String cid = attachPart.getContentID();
+					cid = cid.substring(1, cid.length() - 1);
+					html = html.replace(path, "cid:" + cid);
+					MimeBodyPart htmlPart = new MimeBodyPart();
+					htmlPart.setContent(html, ((Multipart)body).getBodyPart(1).getContentType());
+					htmlPart.setHeader("Content-Type", ((Multipart)body).getBodyPart(1).getContentType());
+					htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+					related.addBodyPart(htmlPart, 0);
+					//add related to alternative
+					MimeBodyPart bodyPart = new MimeBodyPart();
+					bodyPart.setContent(related);
+					alternative.addBodyPart(bodyPart);
+					
+					//replace body
+					((Multipart)content).removeBodyPart(0);
+					bodyPart = new MimeBodyPart();
+					bodyPart.setContent(alternative);
+					((Multipart)content).addBodyPart(bodyPart, 0);
+					
+					return attachPart.getContentID();
+				}
+			}
+			else if(body instanceof Multipart
+					&& ((Multipart)body).getContentType().startsWith("multipart/related"))
+			{
+				/*
+				 * -mixed
+				 * \-related (body)
+				 * 		\-html
+				 * 		|-attachment 
+				 * |-attachments
+				 */
+				//add attachment
+				MimeBodyPart attachPart = new MimeBodyPart();
+				File attachment = new File(path);
+				DataSource source = new FileDataSource(attachment);
+				attachPart.setDataHandler(new DataHandler(source));
+				attachPart.setFileName(attachment.getName());
+				attachPart.setDisposition(MimeBodyPart.INLINE);
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
+				((Multipart)body).addBodyPart(attachPart);
+				//replace html
+				String html = (String) ((Multipart)body).getBodyPart(0).getContent();;
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
+				MimeBodyPart htmlPart = new MimeBodyPart();
+				htmlPart.setContent(html, ((Multipart)body).getBodyPart(0).getContentType());
+				htmlPart.setHeader("Content-Type", ((Multipart)body).getBodyPart(0).getContentType());
+				htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+				((Multipart)body).removeBodyPart(0);
+				((Multipart)body).addBodyPart(htmlPart, 0);
+				
+				//replace body
+				((Multipart)content).removeBodyPart(0);
+				MimeBodyPart bodyPart = new MimeBodyPart();
+				bodyPart.setContent(((Multipart)body));
+				((Multipart)content).addBodyPart(bodyPart, 0);
+				
+				return attachPart.getContentID();
+			}
+			else
+			{
+				/*
+				 * -mixed
+				 * \-html (body)(will be changed to related)
+				 * |-attachments
+				 */
+				//create multipart/related
+				Multipart related = new MimeMultipart("related");
+				//add attachment
+				MimeBodyPart attachPart = new MimeBodyPart();
+				File attachment = new File(path);
+				DataSource source = new FileDataSource(attachment);
+				attachPart.setDataHandler(new DataHandler(source));
+				attachPart.setFileName(attachment.getName());
+				attachPart.setDisposition(MimeBodyPart.INLINE);
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
+				related.addBodyPart(attachPart);
+				//add html
+				String html = (String) ((Multipart)content).getBodyPart(0).getContent();
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
+				MimeBodyPart htmlPart = new MimeBodyPart();
+				htmlPart.setContent(html, ((Multipart)content).getBodyPart(0).getContentType());
+				htmlPart.setHeader("Content-Type", ((Multipart)content).getBodyPart(0).getContentType());
+				htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+				related.addBodyPart(htmlPart, 0);
+				
+				//replace body
+				((Multipart)content).removeBodyPart(0);
+				MimeBodyPart bodyPart = new MimeBodyPart();
+				bodyPart.setContent(related);
+				((Multipart)content).addBodyPart(bodyPart, 0);
+				
+				return attachPart.getContentID();
+			}
+		}
+		else 
+		{
+			if(content instanceof Multipart
+					&& ((Multipart)content).getContentType().startsWith("multipart/alternative"))
+			{
+				//get and replace html part of message
+				Object body = ((Multipart)content).getBodyPart(1).getContent();
+				if(body instanceof Multipart)
+				{
+					/*
+					 * -alternative (content)
+					 * \-text
+					 * |-related (body)
+					 * 		\-html
+					 * 		|-attachment
+					 */
+					//add attachment
+					MimeBodyPart attachPart = new MimeBodyPart();
+					File attachment = new File(path);
+					DataSource source = new FileDataSource(attachment);
+					attachPart.setDataHandler(new DataHandler(source));
+					attachPart.setFileName(attachment.getName());
+					attachPart.setDisposition(MimeBodyPart.INLINE);
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					attachPart.setHeader("Content-Type",mimeType);
+					attachPart.setContentID("<" + attachment.getName()
+							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
+					((Multipart)body).addBodyPart(attachPart);
+					//replace html
+					String html = (String) ((Multipart)body).getBodyPart(0).getContent();
+					String cid = attachPart.getContentID();
+					cid = cid.substring(1, cid.length() - 1);
+					html = html.replace(path, "cid:" + cid);
+					MimeBodyPart htmlPart = new MimeBodyPart();
+					htmlPart.setContent(html, ((Multipart)body).getBodyPart(0).getContentType());
+					htmlPart.setHeader("Content-Type", ((Multipart)body).getBodyPart(0).getContentType());
+					htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+					((Multipart)body).removeBodyPart(0);
+					((Multipart)body).addBodyPart(htmlPart, 0);
+					//replace related
+					((Multipart)content).removeBodyPart(1);
+					MimeBodyPart relatedPart = new MimeBodyPart();
+					relatedPart.setContent((Multipart) body);
+					((Multipart)content).addBodyPart(relatedPart, 1);
+					
+					return attachPart.getContentID();
+				}
+				else
+				{
+					/*
+					 * -alternative (content)
+					 * \-text
+					 * |-html
+					 */
+					//get and replace html part to multipart/related
+					//create multipart/related
+					Multipart related = new MimeMultipart("related");
+					//add attachment
+					MimeBodyPart attachPart = new MimeBodyPart();
+					File attachment = new File(path);
+					DataSource source = new FileDataSource(attachment);
+					attachPart.setDataHandler(new DataHandler(source));
+					attachPart.setFileName(attachment.getName());
+					attachPart.setDisposition(MimeBodyPart.INLINE);
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					attachPart.setHeader("Content-Type",mimeType);
+					attachPart.setContentID("<" + attachment.getName()
+							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
+					related.addBodyPart(attachPart);
+					//add html
+					String html = (String) ((Multipart)content).getBodyPart(1).getContent();
+					String cid = attachPart.getContentID();
+					cid = cid.substring(1, cid.length() - 1);
+					html = html.replace(path, "cid:" + cid);
+					MimeBodyPart htmlPart = new MimeBodyPart();
+					htmlPart.setContent(html, ((Multipart)content).getBodyPart(1).getContentType());
+					htmlPart.setHeader("Content-Type", ((Multipart)content).getBodyPart(1).getContentType());
+					htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+					related.addBodyPart(htmlPart, 0);
+					
+					//replace html part
+					((Multipart)content).removeBodyPart(1);
+					MimeBodyPart bodyPart = new MimeBodyPart();
+					bodyPart.setContent(related);
+					((Multipart)content).addBodyPart(bodyPart);
+					
+					return attachPart.getContentID();
+				}
+			}
+			else if(content instanceof Multipart
+					&& ((Multipart)content).getContentType().startsWith("multipart/related"))
+			{
+				/*
+				 * -related (content)
+				 * \-html
+				 * |-attachment
+				 */
+				//add attachment
+				MimeBodyPart attachPart = new MimeBodyPart();
+				File attachment = new File(path);
+				DataSource source = new FileDataSource(attachment);
+				attachPart.setDataHandler(new DataHandler(source));
+				attachPart.setFileName(attachment.getName());
+				attachPart.setDisposition(MimeBodyPart.INLINE);
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
+				((Multipart)content).addBodyPart(attachPart);
+				//replace html
+				String html = (String) ((Multipart)content).getBodyPart(0).getContent();
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
+				MimeBodyPart htmlPart = new MimeBodyPart();
+				htmlPart.setContent(html, ((Multipart)content).getBodyPart(0).getContentType());
+				htmlPart.setHeader("Content-Type", ((Multipart)content).getBodyPart(0).getContentType());
+				htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+				((Multipart)content).removeBodyPart(0);
+				((Multipart)content).addBodyPart(htmlPart, 0);
+				
+				return attachPart.getContentID();
+			}
+			else 
+			{
+				/*
+				 * -html (content)
+				 */
+				//create multipart/related
+				Multipart related = new MimeMultipart("related");
+				//add attachment
+				MimeBodyPart attachPart = new MimeBodyPart();
+				File attachment = new File(path);
+				DataSource source = new FileDataSource(attachment);
+				attachPart.setDataHandler(new DataHandler(source));
+				attachPart.setFileName(attachment.getName());
+				attachPart.setDisposition(MimeBodyPart.INLINE);
+				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				attachPart.setHeader("Content-Type",mimeType);
+				attachPart.setContentID("<" + attachment.getName()
+						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
+				related.addBodyPart(attachPart);
+				//add html
+				String html = (String) content;
+				String cid = attachPart.getContentID();
+				cid = cid.substring(1, cid.length() - 1);
+				html = html.replace(path, "cid:" + cid);
+				MimeBodyPart htmlPart = new MimeBodyPart();
+				htmlPart.setContent(html, contentType);
+				htmlPart.setHeader("Content-Type", contentType);
+				htmlPart.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+				related.addBodyPart(htmlPart, 0);
+				
+				content = related;
+				contentType = related.getContentType();
+				return attachPart.getContentID();
+			}
+		} 
+		
+	}
+	
+	
 }

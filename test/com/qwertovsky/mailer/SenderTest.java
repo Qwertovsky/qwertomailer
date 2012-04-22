@@ -51,6 +51,7 @@ public class SenderTest
 				, {to, "smtp.host.rus", null, null, null, null, null} //Unknown SMTP host: smtp.host.rus
 				, {to, "smtp.mail.ru", "80", null, null, null, null} //Could not connect to SMTP host: 
 				, {to, "mail.ru", null, null, null, null, null} //Exception reading response 
+				
 				}); 
 	}
 	
@@ -80,6 +81,12 @@ public class SenderTest
 		{
 			if("SMTP server is not specified".equals(e.getMessage()))
 				return;
+			if("Unknown SMTP host: smtp.host.rus".equals(e.getMessage()))
+				return;
+			if(e.getMessage() != null && e.getMessage().startsWith("Could not connect to SMTP host:"))
+				return;
+			if("Exception reading response".equals(e.getMessage()))
+				return;
 			else
 			{
 				e.printStackTrace();
@@ -97,12 +104,7 @@ public class SenderTest
 		{
 			if("Recipients list is empty".equals(e.getMessage()))
 				return;
-			if("Unknown SMTP host: smtp.host.rus".equals(e.getMessage()))
-				return;
-			if(e.getMessage() != null && e.getMessage().startsWith("Could not connect to SMTP host:"))
-				return;
-			if("Exception reading response".equals(e.getMessage()))
-				return;
+			
 			else
 			{
 				e.printStackTrace();
@@ -120,12 +122,7 @@ public class SenderTest
 		{
 			if("Recipients list is empty".equals(e.getMessage()))
 				return;
-			if("Unknown SMTP host: smtp.host.rus".equals(e.getMessage()))
-				return;
-			if(e.getMessage() != null && e.getMessage().startsWith("Could not connect to SMTP host:"))
-				return;
-			if("Exception reading response".equals(e.getMessage()))
-				return;
+			
 			else
 			{
 				e.printStackTrace();
@@ -143,12 +140,7 @@ public class SenderTest
 		{
 			if("Recipients list is empty".equals(e.getMessage()))
 				return;
-			if("Unknown SMTP host: smtp.host.rus".equals(e.getMessage()))
-				return;
-			if(e.getMessage() != null && e.getMessage().startsWith("Could not connect to SMTP host:"))
-				return;
-			if("Exception reading response".equals(e.getMessage()))
-				return;
+			
 			else
 			{
 				e.printStackTrace();
@@ -158,5 +150,5 @@ public class SenderTest
 		
 	}
 	
-
+	
 }

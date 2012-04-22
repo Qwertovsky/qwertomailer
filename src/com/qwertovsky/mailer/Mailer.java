@@ -1,10 +1,8 @@
 package com.qwertovsky.mailer;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -212,7 +210,7 @@ class Mailer
 		}
 		
 		//get attachments
-		List<File> attachFiles = new ArrayList<File>();;
+		List<File> attachFiles = new ArrayList<File>();
 		if(commandLine.hasOption("attach"))
 		{
 			String[] attachFilesPath = commandLine.getOptionValues("attach");
@@ -269,7 +267,13 @@ class Mailer
 		//send message
 		try
 		{
-			sender.send(message, emailsTo);
+			if(!emailsTo.isEmpty())
+				sender.send(message, emailsTo);
+			else
+			{
+				//send with parameters
+				sender.send(message, personParamHeaders, personParameters);
+			}
 		}catch(Exception e)
 		{
 			String errorMessage = e.getMessage();
@@ -396,7 +400,7 @@ class Mailer
 		{
 			FileInputStream fis = new FileInputStream(emailsFile);
 			InputStreamReader isr = new InputStreamReader(fis, charset);
-			reader=new CSVReader(isr, ';','"',false);
+			reader=new CSVReader(isr, ',','"',false);
 			headers = reader.readNext();
 			personParameters.addAll(reader.readAll());
 			reader.close();
@@ -493,6 +497,7 @@ class Mailer
 				.hasArg()
 				.create("bodyEML");
 		OptionGroup ogMessage = new OptionGroup();
+		ogMessage.setRequired(true);
 		ogMessage.addOption(oMessage);
 		ogMessage.addOption(oMessageFile);
 		ogMessage.addOption(oEMLFile);
