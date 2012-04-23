@@ -32,6 +32,8 @@ import javax.swing.text.html.parser.ParserDelegator;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
 
 /**
  * Message with content, content type, charset
@@ -936,6 +938,11 @@ public class MessageContent
 	public void setParameters(String[] headers, String[] parameters)
 		throws IOException, MessagingException, org.apache.velocity.runtime.parser.ParseException
 	{
+		Velocity.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
+			      "org.apache.velocity.slf4j.Slf4jLogChute");
+		Velocity.setProperty("runtime.log.logsystem.slf4j.name",
+			"com.qwertovsky.mailer");
+		Velocity.init();
 		VelocityContext context = new VelocityContext();
 		for(int i=0; i < headers.length; i++)
 		{	
