@@ -18,6 +18,8 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,6 +211,11 @@ public class Sender
 		}
 		
 		mailProp.put("mail.mime.charset", charset);
+		Velocity.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
+	      "org.apache.velocity.slf4j.Slf4jLogChute");
+		Velocity.setProperty("runtime.log.logsystem.slf4j.name",
+			"com.qwertovsky.mailer");
+		Velocity.init();
 		
 		//get indexes of emails and attach
 		int[] emailIndexes = new int[0];
