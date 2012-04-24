@@ -49,7 +49,7 @@ public class Sender
 	 * @throws Exception SMTP server is not specified (NULL or empty)
 	 * @throws NoSuchProviderException
 	 */
-	public Sender(String smtpHostName, String smtpPort, final String smtpUser,
+	public Sender(String smtpHostName, int smtpPort, final String smtpUser,
 			final String smtpPassword, String hostname)
 		throws Exception, NoSuchProviderException
 	{
@@ -57,8 +57,8 @@ public class Sender
 		
 		if(smtpHostName == null || smtpHostName.length() == 0)
 			throw new Exception("SMTP server is not specified");
-		if(smtpPort == null || smtpPort.length() == 0)
-			smtpPort = "25";
+		if(smtpPort == 0)
+			smtpPort = 25;
 		if(hostname == null)
 			hostname = "";
 		
@@ -113,6 +113,7 @@ public class Sender
 		
 	//-----------------------------------------------
 	/**
+	 * Send personal messages to recipients
 	 * @param messageContent message body
 	 * @param emailsTo list of recipients
 	 * @throws Exception
@@ -217,31 +218,10 @@ public class Sender
 			"com.qwertovsky.mailer");
 		Velocity.init();
 		
-		//get indexes of emails and attach
-		int[] emailIndexes = new int[0];
-		int[] attachIndexes = new int[0];
-		for(int i=0; i < personParamHeaders.length; i++)
-		{
-			String header = personParamHeaders[i];
-			if(header == null)
-				continue;
-			if(header.toLowerCase().startsWith("email"))
-			{
-				int[] temp = emailIndexes.clone();
-				emailIndexes = new int[emailIndexes.length + 1];
-				System.arraycopy(temp, 0, emailIndexes, 0, temp.length);
-				emailIndexes[emailIndexes.length-1] = i;
-				continue;
-			}
-			if(header.toLowerCase().startsWith("attach"))
-			{
-				int[] temp = attachIndexes.clone();
-				attachIndexes = new int[attachIndexes.length + 1];
-				System.arraycopy(temp, 0, attachIndexes, 0, temp.length);
-				attachIndexes[attachIndexes.length-1] = i;
-				continue;
-			}
-		}
+		//get indexes of emails (email%) and attachments (attach%)
+		int[] emailIndexes = getEmailIndexes(personParamHeaders);
+		int[] attachIndexes = getAttachIndexes(personParamHeaders);
+		
 		//recipients must be
 		if(emailIndexes.length == 0)
 			throw new Exception("Emails not present in file");
@@ -252,43 +232,12 @@ public class Sender
 		for(String[] parameters:personParameters)
 		{
 			//get emails
-			List<InternetAddress> recipientsList = new ArrayList<InternetAddress>();
-			for(int index:emailIndexes)
-			{
-				String emailString = parameters[index];
-				if(emailString == null)
-					continue;
-				String[] emails = emailString.split(",| ");
-				for(String email:emails)
-				{
-					if(email == null || email.length() == 0)
-						continue;
-					try
-					{
-						recipientsList.add(new InternetAddress(email));
-					}catch(AddressException ae)
-					{
-						logger.warn(email + ":" + ae.getMessage());
-					}
-				}
-			}
-			if(recipientsList.isEmpty())
-			{
-				logger.warn("Email has not been specified for recipient");
-				continue;
-			}
-			InternetAddress[] recipientsArray = recipientsList.toArray(new InternetAddress[0]);
+			InternetAddress[] recipientsArray = getRecipientsList(emailIndexes, parameters);
 			
 			//get attachments
-			List<File> attachments = new ArrayList<File>(attachIndexes.length);
-			for(int index:attachIndexes)
-			{
-				String fileString = parameters[index];
-				if(fileString == null || fileString.length() == 0)
-					continue;
-				File file = new File(fileString);
-				attachments.add(file);
-			}
+			List<File> attachments = getAttachments(attachIndexes, parameters);
+			
+			//create individual message content
 			MessageContent content = new MessageContent(messageContent);
 			content.addAttachments(attachments);
 			content.setParameters(personParamHeaders, parameters);			
@@ -309,7 +258,6 @@ public class Sender
 		
 		//send messages
 		logger.info("Start sending");
-		int i = 0;
 		for(Message message:messages)
 		{
 			try
@@ -325,13 +273,19 @@ public class Sender
 						dir.mkdir();
 					File file = new File("messages/" + messageId + ".eml");
 					message.writeTo(new FileOutputStream(file));
-					i++;
+					
+					//append recipients to log message
 					StringBuilder sb = new StringBuilder("");
-					//append all recipients to message
-					for(Address a:message.getAllRecipients())
+					Address[] recipients = message.getAllRecipients();
+					int i=0;
+					for(; i < 3 && i < recipients.length; i++)
 					{
-						sb.append(((InternetAddress)a).getAddress() +", ");
+						if(sb.length() > 0)
+							sb.append(", ");
+						sb.append(((InternetAddress)recipients[i]).getAddress());
 					}
+					if(i < recipients.length)
+						sb.append("...");
 					logger.trace("Message " + messageId +" has been send to: " + sb.toString());
 				}
 			} catch (MessagingException e)
@@ -349,8 +303,122 @@ public class Sender
 		
 	}
 	
+	//--------------------------------------------
+	protected int[] getEmailIndexes(String[] personParamHeaders)
+	{
+		if(personParamHeaders == null || personParamHeaders.length == 0)
+			return null;
+		int[] emailIndexes = new int[0];
+		for(int i=0; i < personParamHeaders.length; i++)
+		{
+			String header = personParamHeaders[i];
+			if(header == null)
+				continue;
+			if(header.toLowerCase().trim().startsWith("email"))
+			{
+				int[] temp = emailIndexes.clone();
+				emailIndexes = new int[emailIndexes.length + 1];
+				System.arraycopy(temp, 0, emailIndexes, 0, temp.length);
+				emailIndexes[emailIndexes.length-1] = i;
+				continue;
+			}
+		}
+		return emailIndexes;
+	}
+	
+	//--------------------------------------------
+	protected int[] getAttachIndexes(String[] personParamHeaders)
+	{
+		if(personParamHeaders == null || personParamHeaders.length == 0)
+			return null;
+		int[] attachIndexes = new int[0];
+		for(int i=0; i < personParamHeaders.length; i++)
+		{
+			String header = personParamHeaders[i];
+			if(header == null)
+				continue;
+			if(header.toLowerCase().trim().startsWith("attach"))
+			{
+				int[] temp = attachIndexes.clone();
+				attachIndexes = new int[attachIndexes.length + 1];
+				System.arraycopy(temp, 0, attachIndexes, 0, temp.length);
+				attachIndexes[attachIndexes.length-1] = i;
+				continue;
+			}
+		}
+		return attachIndexes;
+	}
+
+	//--------------------------------------------
+	/**
+	 * Get attachments list
+	 * @param attachIndexes array of indexes in parameters array
+	 * @param parameters array of parameters
+	 * @return attachments list
+	 */
+	protected List<File> getAttachments(int[] attachIndexes, String[] parameters)
+	{
+		if(attachIndexes == null || attachIndexes.length == 0
+				|| parameters == null || parameters.length == 0)
+			return null;
+		
+		List<File> attachments = new ArrayList<File>(attachIndexes.length);
+		for(int index:attachIndexes)
+		{
+			String fileString = parameters[index];
+			if(fileString == null || fileString.length() == 0)
+				continue;
+			File file = new File(fileString);
+			if(file.exists())
+				attachments.add(file);
+			else
+			{
+				logger.warn("File " + fileString + " not exists");
+			}
+		}
+		return attachments;
+	}
+
+	//--------------------------------------------
+	/**
+	 * Get recipient list
+	 * @param emailIndexes array of indexes (index of email-parameter in parameters)
+	 * @param parameters array of parameters
+	 * @return recipients addresses list
+	 */
+	protected InternetAddress[] getRecipientsList(int[] emailIndexes,
+			String[] parameters)
+	{
+		if(emailIndexes == null || emailIndexes.length == 0
+				|| parameters == null || parameters.length == 0)
+			return null;
+		List<InternetAddress> recipientsList = new ArrayList<InternetAddress>(emailIndexes.length);
+		for(int index:emailIndexes)
+		{
+			String emailString = parameters[index];
+			if(emailString == null)
+				continue;
+			String[] emails = emailString.split(",| ");
+			for(String email:emails)
+			{
+				if(email == null || email.length() == 0)
+					continue;
+				try
+				{
+					recipientsList.add(new InternetAddress(email));
+				}catch(AddressException ae)
+				{
+					logger.warn(email + ":" + ae.getMessage());
+				}
+			}
+		}
+		if(recipientsList == null || recipientsList.isEmpty())
+			return null;
+		return recipientsList.toArray(new InternetAddress[0]);
+	}
+
 	//-----------------------------------------------
-	private void makeMessage(Message message, MessageContent mailMessage) throws MessagingException
+	protected void makeMessage(Message message, MessageContent mailMessage) throws MessagingException
 	{
 		Object content = mailMessage.getContent();
 		String contentType = null;

@@ -56,7 +56,7 @@ class Mailer
 			if(!logDir.exists())
 				logDir.mkdir();
 	    	appender = new DailyRollingFileAppender(layout, "log/qwertomailer.log", "'.'yyyy-MM-dd'.log'");
-		} catch (IOException e)
+	    } catch (IOException e)
 		{
 			logger.error(e.getMessage());
 			return;
@@ -96,7 +96,7 @@ class Mailer
 		CommandLineParser parser = new PosixParser();
 
 		String smtpHost = null;
-		String smtpPort = "25";
+		int smtpPort = 25;
 		String smtpUser = null;
 		String smtpPassword = null;
 		String hostname = null;
@@ -129,7 +129,22 @@ class Mailer
 			logger.setLevel(Level.TRACE);
 		}
 		smtpHost = commandLine.getOptionValue("smtpHost");
-		smtpPort = commandLine.getOptionValue("smtpPort", "25");
+		try
+		{
+			long port = (Long)commandLine.getParsedOptionValue("smtpPort");
+			smtpPort = (int) port;
+		} catch (ParseException pe)
+		{
+			logger.error("smtpPort has bad format");
+			System.err.println("smtpPort has bad format");
+			System.exit(1);
+		} catch (ClassCastException cce)
+		{
+			logger.error("smtpPort has bad format");
+			System.err.println("smtpPort has bad format");
+			System.exit(1);
+		}
+		
 		smtpUser = commandLine.getOptionValue("smtpUser");
 		smtpPassword = commandLine.getOptionValue("smtpPassword");
 		hostname = commandLine.getOptionValue("hostname");
@@ -462,6 +477,7 @@ class Mailer
 		Option oSmtpPort = OptionBuilder.withArgName("port")
 				.withDescription("specify SMTP port (default 25)")
 				.hasArg()
+				.withType(Number.class)
 				.create("smtpPort");
 		Option oSmtpUser = OptionBuilder.withArgName("username")
 				.withDescription("specify SMTP user")
