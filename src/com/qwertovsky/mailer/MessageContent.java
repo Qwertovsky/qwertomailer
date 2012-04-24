@@ -1020,12 +1020,7 @@ public class MessageContent
 					 * 		|-html 
 					 * |-attachments
 					 */
-					//create new alternative
-					Multipart alternative = new MimeMultipart("alternative");
-					//add palin part
-					alternative.addBodyPart(((Multipart)body).getBodyPart(0));
-					
-					//add html
+					//replace html
 					String html = (String)  ((Multipart)body).getBodyPart(1).getContent();
 					StringWriter mailBody = new StringWriter();
 					Velocity.evaluate(context, mailBody, "message body", html);
@@ -1044,7 +1039,7 @@ public class MessageContent
 					//replace body
 					((Multipart)content).removeBodyPart(0);
 					MimeBodyPart bodyPart = new MimeBodyPart();
-					bodyPart.setContent(alternative);
+					bodyPart.setContent(((Multipart)body));
 					((Multipart)content).addBodyPart(bodyPart, 0);
 				}
 				

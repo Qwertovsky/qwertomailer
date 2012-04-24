@@ -7,7 +7,7 @@ Message-ID: <4F8567F8.8080208>
 Date: Wed, 11 Apr 2012 15:16:08 +0400
 User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko/20120327 Thunderbird/11.0.1
 MIME-Version: 1.0
-Subject: multipart
+Subject: multipart $subject
 Content-Type: multipart/mixed;
  boundary="------------090303020604010006070604"
 
@@ -26,6 +26,7 @@ Content-Transfer-Encoding: 8bit
     <img alt="" src="cid:part1.00070004.09020305"
       height="89" width="128">
 	<br><img src="test.png" />
+	<br />$message
 </html>
 
 --------------000004020701060900080404

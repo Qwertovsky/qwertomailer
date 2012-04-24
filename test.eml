@@ -7,7 +7,7 @@ Date: Thu, 05 Apr 2012 19:57:37 +0400
 X-Mozilla-Draft-Info: internal/draft; vcard=0; receipt=0; DSN=0; uuencode=0
 User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko/20120327 Thunderbird/11.0.1
 MIME-Version: 1.0
-Subject: test message subject =?windows-1251?Q?=28=F2=E5=EC=E0_=F2=E5=F1?=
+Subject: test message $subject =?windows-1251?Q?=28=F2=E5=EC=E0_=F2=E5=F1?=
  =?windows-1251?Q?=F2=EE=E2=EE=E3=EE_=F1=EE=EE=E1=F9=E5=ED=E8=FF=29?=
 X-Enigmail-Version: 1.4
 Content-Type: text/html; charset=windows-1251
@@ -16,4 +16,5 @@ Content-Transfer-Encoding: 8bit
 <html>
 	<b>test message (тестовое сообщение)</b>
 	<img src="../qwertomailer/test.png" />
+	<br />$message
 </html>

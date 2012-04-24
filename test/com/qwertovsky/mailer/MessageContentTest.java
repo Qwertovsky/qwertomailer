@@ -1,5 +1,5 @@
 package com.qwertovsky.mailer;
-import static org.junit.Assert.assertEquals;
+
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -968,27 +968,314 @@ public class MessageContentTest
 	@Test
 	public void testSetParameters() throws Exception
 	{
-		MessageContent messageContent = new MessageContent("<html>$message</html>"
-				, "text/html", "$subject", "utf-8");
-		messageContent.setAlternativeText("alternative $message", "utf-8");
-		messageContent.setParameters(new String[]{"message", "subject"}
-			, new String[]{"message parameter","subject parameter"});
-		Object body = messageContent.getContent();
-		if(body instanceof Multipart 
-				&& ((Multipart)body).getContentType().startsWith("multipart/alternative"))
+		/*
+		 * -html (content)
+		 */
+		try
 		{
-			BodyPart textPart = ((Multipart)body).getBodyPart(0);
-			BodyPart htmlPart = ((Multipart)body).getBodyPart(1);
-			String text = (String) textPart.getContent();
-			String html = (String) htmlPart.getContent();
-			String subject = messageContent.getSubject();
-			assertEquals("not correct alternative text", "alternative message parameter", text);
-			assertEquals("not correct message", "<html>message parameter</html>", html);
-			assertEquals("not correct subject", "subject parameter", subject);
-			
+			MessageContent message = new MessageContent(new File("test.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			String html = (String) message.getContent();
+			if(!message.getContentType().startsWith("text/html"))
+					fail("incorrect setParameters");
+			String subject = message.getSubject();
+			if(!html.contains("<br />message parameter"))
+				fail("not correct message");
+			if(!subject.contains("subject parameter"))
+				fail("not correct subject");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
 		}
-		else
-			fail("message must be multipart/alternative");
-		
+		//--------------------
+		/*
+		 * -alternative 
+		 * 	\-plain
+		 * 	|-html
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test_multipart_alt.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			Object alternative = message.getContent();
+			if(alternative instanceof Multipart
+					&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
+			{
+				BodyPart textPart = ((Multipart)alternative).getBodyPart(0);
+				BodyPart htmlPart = ((Multipart)alternative).getBodyPart(1);
+				if(!htmlPart.getContentType().startsWith("text/html"))
+						fail("incorrect setParameters");
+				String text = (String) textPart.getContent();
+				String html = (String) htmlPart.getContent();
+				String subject = message.getSubject();
+				if(!text.contains("message parameter"))
+					fail("not correct alternative text");
+				if(!html.contains("<br />message parameter"))
+					fail("not correct message");
+				if(!subject.contains("subject parameter"))
+					fail("not correct subject");
+			}
+			else
+				fail("must be alternative");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * -related
+		 * 	\-html
+		 * 	|-attachment
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test_multipart_related.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			Object related = message.getContent();
+			if(related instanceof Multipart
+					&& ((Multipart)related).getContentType().startsWith("multipart/related"))
+			{
+				BodyPart htmlPart = ((Multipart)related).getBodyPart(0);
+				if(!htmlPart.getContentType().startsWith("text/html"))
+					fail("incorrect setParameters");
+				String html = (String) htmlPart.getContent();
+				String subject = message.getSubject();
+				if(!html.contains("<br />message parameter"))
+					fail("not correct message");
+				if(!subject.contains("subject parameter"))
+					fail("not correct subject");
+			}
+			else
+				fail("must be related");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * -alternative 
+		 * 	\-plain
+		 * 	|-related
+		 * 			\-html
+		 * 			|-attachment
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test_multipart_alt_related.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			Object alternative = message.getContent();
+			if(alternative instanceof Multipart
+					&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
+			{
+				Object related = ((Multipart)alternative).getBodyPart(1).getContent();
+				if(related instanceof Multipart
+						&& ((Multipart)related).getContentType().startsWith("multipart/related"))
+				{
+					BodyPart textPart = ((Multipart)alternative).getBodyPart(0);
+					BodyPart htmlPart = ((Multipart)related).getBodyPart(0);
+					if(!htmlPart.getContentType().startsWith("text/html"))
+						fail("incorrect setParameters");
+					String text = (String) textPart.getContent();
+					String html = (String) htmlPart.getContent();
+					String subject = message.getSubject();
+					if(!text.contains("message parameter"))
+						fail("not correct alternative text");
+					if(!html.contains("<br />message parameter"))
+						fail("not correct message");
+					if(!subject.contains("subject parameter"))
+						fail("not correct subject");
+				}
+				else
+					fail("must be related");
+			}
+			else
+				fail("must be alternative");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * -mixed
+		 * \-html
+		 * |-attachment (index 1) 
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test_multipart_mixed.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			Object mixed = message.getContent();
+			if(mixed instanceof Multipart
+					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
+			{
+				BodyPart htmlPart = ((Multipart)mixed).getBodyPart(0);
+				if(!htmlPart.getContentType().startsWith("text/html"))
+						fail("incorrect setParameters");
+				String html = (String) htmlPart.getContent();
+				String subject = message.getSubject();
+				if(!html.contains("<br />message parameter"))
+					fail("not correct message");
+				if(!subject.contains("subject parameter"))
+					fail("not correct subject");
+			}
+			else
+				fail("must be mixed");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * -mixed
+		 * \-alternative 
+		 * 		\-plain
+		 * 		|-html
+		 * |-attachment (index 1) 
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			Object mixed = message.getContent();
+			if(mixed instanceof Multipart
+					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
+			{
+				Object alternative = ((Multipart)mixed).getBodyPart(0).getContent();
+				if(alternative instanceof Multipart
+						&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
+				{
+					BodyPart textPart = ((Multipart)alternative).getBodyPart(0);
+					BodyPart htmlPart = ((Multipart)alternative).getBodyPart(1);
+					if(!htmlPart.getContentType().startsWith("text/html"))
+						fail("incorrect setParameters");
+					String text = (String) textPart.getContent();
+					String html = (String) htmlPart.getContent();
+					String subject = message.getSubject();
+					if(!text.contains("message parameter"))
+						fail("not correct alternative text");
+					if(!html.contains("<br />message parameter"))
+						fail("not correct message");
+					if(!subject.contains("subject parameter"))
+						fail("not correct subject");
+						
+				}
+				else
+					fail("must be alternative");
+			}
+			else
+				fail("must be mixed");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * -mixed
+		 * \-related
+		 * 		\-html
+		 * 		|-attachment
+		 * |-attachment (index 1) 
+		 * 
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test_multipart_mixed_related.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			Object mixed = message.getContent();
+			if(mixed instanceof Multipart
+					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
+			{
+				Object related = ((Multipart)mixed).getBodyPart(0).getContent();
+				if(related instanceof Multipart
+						&& ((Multipart)related).getContentType().startsWith("multipart/related"))
+				{
+					BodyPart htmlPart = ((Multipart)related).getBodyPart(0);
+					if(!htmlPart.getContentType().startsWith("text/html"))
+						fail("incorrect setParameters");
+					String html = (String) htmlPart.getContent();
+					String subject = message.getSubject();
+					if(!html.contains("<br />message parameter"))
+						fail("not correct message");
+					if(!subject.contains("subject parameter"))
+						fail("not correct subject");
+				}
+				else
+					fail("incorrect addInlineAttachments");
+			}
+			else
+				fail("incorrect addInlineAttachments");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * -mixed
+		 * \-alternative 
+		 * 		\-plain
+		 * 		|-related
+		 * 			\-html
+		 * 			|-attachment
+		 * |-attachment (index 1) 
+		 * 
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt_related.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter","subject parameter"});
+			Object mixed = message.getContent();
+			if(mixed instanceof Multipart
+					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
+			{
+				Object alternative = ((Multipart)mixed).getBodyPart(0).getContent();
+				if(alternative instanceof Multipart
+						&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
+				{
+					Object related = ((Multipart)alternative).getBodyPart(1).getContent();
+					if(related instanceof Multipart
+							&& ((Multipart)related).getContentType().startsWith("multipart/related"))
+					{
+						BodyPart textPart = ((Multipart)alternative).getBodyPart(0);
+						BodyPart htmlPart = ((Multipart)related).getBodyPart(0);
+						if(!htmlPart.getContentType().startsWith("text/html"))
+							fail("incorrect setParameters");
+						String text = (String) textPart.getContent();
+						String html = (String) htmlPart.getContent();
+						String subject = message.getSubject();
+						if(!text.contains("message parameter"))
+							fail("not correct alternative text");
+						if(!html.contains("<br />message parameter"))
+							fail("not correct message");
+						if(!subject.contains("subject parameter"))
+							fail("not correct subject");
+					}
+					else
+						fail("must be related");
+				}
+				else
+					fail("must be alternative");
+			}
+			else
+				fail("must be mixed");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
 	}
 }
