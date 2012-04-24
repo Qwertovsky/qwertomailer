@@ -240,7 +240,28 @@ public class Sender
 			//create individual message content
 			MessageContent content = new MessageContent(messageContent);
 			content.addAttachments(attachments);
-			content.setParameters(personParamHeaders, parameters);			
+			try
+			{
+				content.setParameters(personParamHeaders, parameters);
+			}
+			catch(Exception e)
+			{
+				if("Bad parameters for message".equals(e.getMessage())
+						|| "Parameters must be not less then headers".equals(e.getMessage()))
+				{
+					StringBuilder sb = new StringBuilder();
+					sb.append("Message has not been created (" + e.getMessage() + ") for: ");
+					for(int i = 0; i < parameters.length; i++)
+					{
+						sb.append("\"" + parameters[i] + "\"");
+						if((i + 1) < parameters.length)
+							sb.append(", ");
+					}
+					logger.warn(sb.toString());
+					continue;
+				}
+				throw e;
+			}
 			
 			Message message = new Message(session);
 			try
@@ -263,7 +284,7 @@ public class Sender
 			try
 			{
 				message.saveChanges();
-//				Transport.send(message);
+				Transport.send(message);
 				if(logger.isTraceEnabled())
 				{
 					String messageId = message.getMessageID();
@@ -304,6 +325,12 @@ public class Sender
 	}
 	
 	//--------------------------------------------
+	/**
+	 * Get indexes of emails in parameters array
+	 * <br />Email headers start with "email"
+	 * @param personParamHeaders headers of parameters
+	 * @return indexes array
+	 */
 	protected int[] getEmailIndexes(String[] personParamHeaders)
 	{
 		if(personParamHeaders == null || personParamHeaders.length == 0)
@@ -327,6 +354,12 @@ public class Sender
 	}
 	
 	//--------------------------------------------
+	/**
+	 * Get indexes of attachments in parameters array
+	 * <br />Attachment headers start with "attach"
+	 * @param personParamHeaders headers of parameters
+	 * @return indexes array
+	 */
 	protected int[] getAttachIndexes(String[] personParamHeaders)
 	{
 		if(personParamHeaders == null || personParamHeaders.length == 0)
@@ -365,7 +398,21 @@ public class Sender
 		List<File> attachments = new ArrayList<File>(attachIndexes.length);
 		for(int index:attachIndexes)
 		{
+			if(parameters.length <= index)
+			{
+				StringBuilder sb = new StringBuilder();
+				sb.append("Attachment not present in column " + index + " (first is 0):");
+				for(int i = 0; i < parameters.length; i++)
+				{
+					sb.append("\"" + parameters[i] + "\"");
+					if((i + 1) < parameters.length)
+						sb.append(", ");
+				}
+				logger.warn(sb.toString());
+				continue;
+			}
 			String fileString = parameters[index];
+			fileString = fileString.trim();
 			if(fileString == null || fileString.length() == 0)
 				continue;
 			File file = new File(fileString);
@@ -395,6 +442,19 @@ public class Sender
 		List<InternetAddress> recipientsList = new ArrayList<InternetAddress>(emailIndexes.length);
 		for(int index:emailIndexes)
 		{
+			if(parameters.length <= index)
+			{
+				StringBuilder sb = new StringBuilder();
+				sb.append("Email not present in column " + index + " (first is 0):");
+				for(int i = 0; i < parameters.length; i++)
+				{
+					sb.append("\"" + parameters[i] + "\"");
+					if((i + 1) < parameters.length)
+						sb.append(", ");
+				}
+				logger.warn(sb.toString());
+				continue;
+			}
 			String emailString = parameters[index];
 			if(emailString == null)
 				continue;
@@ -418,6 +478,12 @@ public class Sender
 	}
 
 	//-----------------------------------------------
+	/**
+	 * Put data to MimeMessage from MessageContent
+	 * @param message
+	 * @param mailMessage
+	 * @throws MessagingException
+	 */
 	protected void makeMessage(Message message, MessageContent mailMessage) throws MessagingException
 	{
 		Object content = mailMessage.getContent();

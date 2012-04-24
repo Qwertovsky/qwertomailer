@@ -83,7 +83,7 @@ public class MessageContent
 		this.charset = new String(messageContent.getCharset());
 		this.contentType = new String(messageContent.getContentType());
 		this.contentTransferEncoding = new String(messageContent.getContentTransferEncoding());
-		
+		this.subject = new String(messageContent.getSubject());
 	}
 	
 	//--------------------------------------------
@@ -208,6 +208,8 @@ public class MessageContent
 	 */
 	public void addAttachments(List<File> attachments) throws MessagingException
 	{
+		if(attachments == null)
+			return;
 		if(content instanceof Multipart
 				&& ((Multipart)content).getContentType().startsWith("multipart/mixed"))
 		{
@@ -941,13 +943,23 @@ public class MessageContent
 	 * @throws IOException
 	 * @throws MessagingException
 	 * @throws org.apache.velocity.runtime.parser.ParseException
+	 * @throws Exception Bad parameters for message,
+	 * <br />Parameters must be not less then headers
 	 */
 	public void setParameters(String[] headers, String[] parameters)
-		throws IOException, MessagingException, org.apache.velocity.runtime.parser.ParseException
+		throws IOException, MessagingException
+		, org.apache.velocity.runtime.parser.ParseException
+		, Exception
 	{
+		if(headers == null || headers.length == 0
+				|| parameters == null || parameters.length == 0)
+			throw new Exception("Bad parameters for message");
+		
 		VelocityContext context = new VelocityContext();
 		for(int i=0; i < headers.length; i++)
 		{	
+			if(parameters.length <= i)
+				throw new Exception("Parameters must be not less then headers");
 			if(headers[i] == null || headers[i].length() == 0)
 				continue;
 			context.put(headers[i], parameters[i]);
