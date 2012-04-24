@@ -1,8 +1,8 @@
 package com.qwertovsky.mailer;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.mail.BodyPart;
@@ -434,21 +434,6 @@ public class MessageContentTest
 	public void testAddInlineAttachment()
 	{
 		
-		Method addInlineAttachment = null;
-		try
-		{
-			addInlineAttachment = MessageContent.class.getDeclaredMethod("addInlineAttachment", String.class);
-			addInlineAttachment.setAccessible(true);
-		} catch (SecurityException e1)
-		{
-			e1.printStackTrace();
-			fail(e1.getMessage());
-		} catch (NoSuchMethodException e1)
-		{
-			e1.printStackTrace();
-			fail(e1.getMessage());
-		}
-		
 		/*
 		 * -related
 		 * \-html (index 0)
@@ -457,8 +442,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "../qwertomailer/test.png");
-//			String cid = message.addInlineAttachment("../qwertomailer/test.png");
+			String cid = message.addInlineAttachment("../qwertomailer/test.png");
 			Object related = message.getContent();
 			if(related instanceof Multipart
 					&& ((Multipart)related).getContentType().startsWith("multipart/related"))
@@ -492,8 +476,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test_multipart_alt.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "test.png");
-//			String cid = message.addInlineAttachment("test.png");
+			String cid = message.addInlineAttachment("test.png");
 			Object alternative = message.getContent();
 			if(alternative instanceof Multipart
 					&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
@@ -535,8 +518,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test_multipart_related.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "test.png");
-//			String cid = message.addInlineAttachment("test.png");
+			String cid = message.addInlineAttachment("test.png");
 			Object related = message.getContent();
 			if(related instanceof Multipart
 					&& ((Multipart)related).getContentType().startsWith("multipart/related"))
@@ -573,8 +555,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test_multipart_alt_related.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "test.png");
-//			String cid = message.addInlineAttachment("test.png");
+			String cid = message.addInlineAttachment("test.png");
 			Object alternative = message.getContent();
 			if(alternative instanceof Multipart
 					&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
@@ -617,8 +598,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test_multipart_mixed.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "test.png");
-//			String cid = message.addInlineAttachment("test.png");
+			String cid = message.addInlineAttachment("test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -664,8 +644,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "test.png");
-//			String cid = message.addInlineAttachment("test.png");
+			String cid = message.addInlineAttachment("test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -716,8 +695,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test_multipart_mixed_related.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "test.png");
-//			String cid = message.addInlineAttachment("test.png");
+			String cid = message.addInlineAttachment("test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -763,8 +741,7 @@ public class MessageContentTest
 		try
 		{
 			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt_related.eml"));
-			String cid = (String) addInlineAttachment.invoke(message, "test.png");
-//			String cid = message.addInlineAttachment("test.png");
+			String cid = message.addInlineAttachment("test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -985,5 +962,33 @@ public class MessageContentTest
 			e.printStackTrace();
 			fail("incorrect setRelated");
 		}
+	}
+
+	//--------------------------------------------
+	@Test
+	public void testSetParameters() throws Exception
+	{
+		MessageContent messageContent = new MessageContent("<html>$message</html>"
+				, "text/html", "$subject", "utf-8");
+		messageContent.setAlternativeText("alternative $message", "utf-8");
+		messageContent.setParameters(new String[]{"message", "subject"}
+			, new String[]{"message parameter","subject parameter"});
+		Object body = messageContent.getContent();
+		if(body instanceof Multipart 
+				&& ((Multipart)body).getContentType().startsWith("multipart/alternative"))
+		{
+			BodyPart textPart = ((Multipart)body).getBodyPart(0);
+			BodyPart htmlPart = ((Multipart)body).getBodyPart(1);
+			String text = (String) textPart.getContent();
+			String html = (String) htmlPart.getContent();
+			String subject = messageContent.getSubject();
+			assertEquals("not correct alternative text", "alternative message parameter", text);
+			assertEquals("not correct message", "<html>message parameter</html>", html);
+			assertEquals("not correct subject", "subject parameter", subject);
+			
+		}
+		else
+			fail("message must be multipart/alternative");
+		
 	}
 }

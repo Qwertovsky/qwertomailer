@@ -18,6 +18,7 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -279,7 +280,7 @@ public class MessageContent
 	 * @throws IOException
 	 * @throws IOException Inline image url is null or empty
 	 */
-	private String addInlineAttachment(String path) throws MessagingException, IOException, Exception
+	protected String addInlineAttachment(String path) throws MessagingException, IOException, Exception
 	{
 		if(path == null || path.length() == 0)
 			throw new Exception("Inline image url is incorrect");
@@ -933,6 +934,14 @@ public class MessageContent
 	}
 
 	//--------------------------------------------
+	/**
+	 * Put inline parameters in message
+	 * @param headers array of parameter's headers
+	 * @param parameters array of parameters
+	 * @throws IOException
+	 * @throws MessagingException
+	 * @throws org.apache.velocity.runtime.parser.ParseException
+	 */
 	public void setParameters(String[] headers, String[] parameters)
 		throws IOException, MessagingException, org.apache.velocity.runtime.parser.ParseException
 	{
@@ -952,6 +961,17 @@ public class MessageContent
 			if(body instanceof Multipart
 					&& ((Multipart)body).getContentType().startsWith("multipart/alternative"))
 			{
+				//get alternative text
+				BodyPart altPart = ((Multipart)body).getBodyPart(0);
+				String alterText = (String) altPart.getContent();
+				StringWriter alterTextWriter = new StringWriter();
+				Velocity.evaluate(context, alterTextWriter, "message body", alterText);
+				alterTextWriter.flush();
+				alterTextWriter.close();
+				alterText = alterTextWriter.toString();
+				ContentType ct = new ContentType(altPart.getContentType());
+				String alterTextCharset = ct.getParameter("charset");
+				
 				//get main part (html or related)
 				Object mainPart = ((Multipart)body).getBodyPart(1).getContent();
 				if(mainPart instanceof Multipart)
@@ -1027,6 +1047,11 @@ public class MessageContent
 					bodyPart.setContent(alternative);
 					((Multipart)content).addBodyPart(bodyPart, 0);
 				}
+				
+				if(alterTextCharset != null)
+					setAlternativeText(alterText, alterTextCharset);
+				else
+					setAlternativeText(alterText, charset);
 			}
 			else if(body instanceof Multipart
 					&& ((Multipart)body).getContentType().startsWith("multipart/related"))
@@ -1088,6 +1113,17 @@ public class MessageContent
 			if(content instanceof Multipart
 					&& ((Multipart)content).getContentType().startsWith("multipart/alternative"))
 			{
+				//get alternative text
+				BodyPart altPart = ((Multipart)content).getBodyPart(0);
+				String alterText = (String) altPart.getContent();
+				StringWriter alterTextWriter = new StringWriter();
+				Velocity.evaluate(context, alterTextWriter, "message body", alterText);
+				alterTextWriter.flush();
+				alterTextWriter.close();
+				alterText = alterTextWriter.toString();
+				ContentType ct = new ContentType(altPart.getContentType());
+				String alterTextCharset = ct.getParameter("charset");
+				
 				//get and replace html part of message
 				Object body = ((Multipart)content).getBodyPart(1).getContent();
 				if(body instanceof Multipart)
@@ -1143,6 +1179,11 @@ public class MessageContent
 					((Multipart)content).removeBodyPart(1);
 					((Multipart)content).addBodyPart(htmlPart);
 				}
+				
+				if(alterTextCharset != null)
+					setAlternativeText(alterText, alterTextCharset);
+				else
+					setAlternativeText(alterText, charset);
 			}
 			else if(content instanceof Multipart
 					&& ((Multipart)content).getContentType().startsWith("multipart/related"))
@@ -1182,7 +1223,13 @@ public class MessageContent
 				html = mailBody.toString();
 				content = html;
 			}
-		} 
+		}
+		
+		StringWriter subjectWriter = new StringWriter();
+		Velocity.evaluate(context, subjectWriter, "message body", subject);
+		subjectWriter.flush();
+		subjectWriter.close();
+		subject = subjectWriter.toString();
 		
 	}
 	
