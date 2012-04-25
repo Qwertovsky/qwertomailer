@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project default="test" name="Testing QwertoMailer">
+	
 	<target name="config">
         <property file="build.properties"/>
 		<path id="libPath">
@@ -16,7 +17,28 @@
 			<pathelement path="${subethasmtp-jar}"/>
 		</path>
     </target>
-	<target name="test" depends="config">
+	
+	<target name="clean">
+		<delete dir="bin" />
+		<delete>
+			<fileset dir="build" excludes="*.zip" />
+		</delete>
+		<delete dir="doc" />
+	</target>
+	
+	<target name="compile" depends="config,clean">
+		<mkdir dir="bin" />
+		<javac srcdir="src:test"
+			encoding="utf-8"
+			classpathref="libPath"
+			includeAntRuntime="false"
+			destdir="bin"
+			debug="true"
+		/>
+	</target>
+	
+	
+	<target name="test" depends="compile">
 		<junit haltonfailure="true" haltonerror="true">
 			<classpath>
 				<pathelement path="./bin" />
