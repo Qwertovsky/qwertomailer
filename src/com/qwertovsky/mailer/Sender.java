@@ -1,7 +1,9 @@
 package com.qwertovsky.mailer;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -114,7 +116,7 @@ public class Sender
 	//-----------------------------------------------
 	/**
 	 * Send personal messages to recipients
-	 * @param messageContent message body
+	 * @param messageContent message content
 	 * @param emailsTo list of recipients
 	 * @throws Exception
 	 * 
@@ -156,46 +158,22 @@ public class Sender
 		
 		//send messages
 		logger.info("Start sending");
-		int i = 0;
 		for(Message message:messages)
 		{
-			try
-			{
-				message.saveChanges();
-				Transport.send(message);
-				if(logger.isTraceEnabled())
-				{
-					String messageId = message.getMessageID();
-					messageId = messageId.substring(1, messageId.length()-1);
-					File dir = new File("messages");
-					if(!dir.exists())
-						dir.mkdir();
-					File file = new File("messages/" + messageId + ".eml");
-					message.writeTo(new FileOutputStream(file));
-					i++;
-					StringBuilder sb = new StringBuilder("");
-					//append all recipients to message
-					for(Address a:message.getAllRecipients())
-					{
-						sb.append(((InternetAddress)a).getAddress() +", ");
-					}
-					logger.trace("Message " + messageId +" has been send to: " + sb.toString());
-				}
-			} catch (MessagingException e)
-			{
-				StringBuilder sb = new StringBuilder("Error ("+ e.getMessage() +") send message to: ");
-				//append all recipients to message
-				for(Address a:message.getAllRecipients())
-				{
-					sb.append(((InternetAddress)a).getAddress() +", ");
-				}
-				logger.warn(sb.toString());
-			}
+			sendMessage(message);
 		}
 		logger.info("End sending");
 	}
 	
 	//--------------------------------------------
+	/**
+	 * Send messages. One array of parameters - one message.
+	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * @param messageContent message content
+	 * @param personParamHeaders headers of parameters
+	 * @param personParameters list of parameters
+	 * @throws Exception
+	 */
 	public void send(MessageContent messageContent, String[] personParamHeaders,
 			ArrayList<String[]> personParameters) throws Exception
 	{
@@ -257,10 +235,13 @@ public class Sender
 						if((i + 1) < parameters.length)
 							sb.append(", ");
 					}
-					logger.warn(sb.toString());
+					logger.error(sb.toString());
 					continue;
 				}
-				throw e;
+				else
+					//bad parameters, bad format parameters file
+					//stop create messages
+					throw e;
 			}
 			
 			Message message = new Message(session);
@@ -270,7 +251,7 @@ public class Sender
 				message.setRecipients(RecipientType.TO, recipientsArray);
 			} catch (MessagingException e)
 			{
-				logger.warn("Message has not been created for "
+				logger.error("Message has not been created for "
 						+ recipientsArray[0].getAddress() + "("+e.getMessage()+")");
 				continue;
 			}
@@ -281,23 +262,60 @@ public class Sender
 		logger.info("Start sending");
 		for(Message message:messages)
 		{
-			try
+			sendMessage(message);
+		}
+		logger.info("End sending");
+		
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Send MimeMessage
+	 * @param message MimeMessage
+	 */
+	protected void sendMessage(Message message)
+	{
+		try
+		{
+			//update message-id
+			message.saveChanges();
+			
+			//send message
+			Transport.send(message);
+			
+			if(logger.isTraceEnabled())
 			{
-				message.saveChanges();
-				Transport.send(message);
-				if(logger.isTraceEnabled())
+				//save message to file messageId.eml and write log
+				String messageId = message.getMessageID();
+				messageId = messageId.substring(1, messageId.length()-1);
+				File dir = new File("messages");
+				if(!dir.exists())
+					dir.mkdir();
+				File file = new File("messages/" + messageId + ".eml");
+				try
 				{
-					String messageId = message.getMessageID();
-					messageId = messageId.substring(1, messageId.length()-1);
-					File dir = new File("messages");
-					if(!dir.exists())
-						dir.mkdir();
-					File file = new File("messages/" + messageId + ".eml");
 					message.writeTo(new FileOutputStream(file));
-					
-					//append recipients to log message
-					StringBuilder sb = new StringBuilder("");
-					Address[] recipients = message.getAllRecipients();
+				} catch (FileNotFoundException e)
+				{
+					logger.warn("Error save message: " + messageId
+							+ "(" + e.getMessage() + ")");
+				} catch (IOException e)
+				{
+					logger.warn("Error save message: " + messageId
+							+ "(" + e.getMessage() + ")");
+				} catch (MessagingException e)
+				{
+					logger.warn("Error save message: " + messageId
+							+ "(" + e.getMessage() + ")");
+				}
+				
+				//log about send message
+				//append recipients to log message
+				StringBuilder sb = new StringBuilder();
+				Address[] recipients = null;
+				try
+				{
+					recipients = message.getAllRecipients();
 					int i=0;
 					for(; i < 3 && i < recipients.length; i++)
 					{
@@ -307,23 +325,40 @@ public class Sender
 					}
 					if(i < recipients.length)
 						sb.append("...");
-					logger.trace("Message " + messageId +" has been send to: " + sb.toString());
-				}
-			} catch (MessagingException e)
-			{
-				StringBuilder sb = new StringBuilder("Error ("+ e.getMessage() +") send message to: ");
-				//append all recipients to message
-				for(Address a:message.getAllRecipients())
+				} catch (MessagingException e1)
 				{
-					sb.append(((InternetAddress)a).getAddress() +", ");
+					sb.append("error get recipients");
 				}
-				logger.warn(sb.toString());
+				logger.trace("Message " + messageId +" has been send to: " + sb.toString());
 			}
+		} catch (MessagingException me)
+		{
+			//log about not send message
+			//append recipients to log message
+			StringBuilder sb = new StringBuilder();
+			Address[] recipients = null;
+			try
+			{
+				recipients = message.getAllRecipients();
+				int i=0;
+				for(; i < 3 && i < recipients.length; i++)
+				{
+					if(sb.length() > 0)
+						sb.append(", ");
+					sb.append(((InternetAddress)recipients[i]).getAddress());
+				}
+				if(i < recipients.length)
+					sb.append("...");
+			} catch (MessagingException e1)
+			{
+				sb.append("error get recipients");
+			}
+						
+			logger.error("Error ("+ me.getMessage() +") send message to: " + sb.toString());
 		}
-		logger.info("End sending");
 		
 	}
-	
+
 	//--------------------------------------------
 	/**
 	 * Get indexes of emails in parameters array

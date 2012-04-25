@@ -951,8 +951,9 @@ public class MessageContent
 		, org.apache.velocity.runtime.parser.ParseException
 		, Exception
 	{
-		if(headers == null || headers.length == 0
-				|| parameters == null || parameters.length == 0)
+		if(headers == null || headers.length == 0)
+			throw new Exception("Parameters headers must be");
+		if(parameters == null || parameters.length == 0)
 			throw new Exception("Bad parameters for message");
 		
 		VelocityContext context = new VelocityContext();
