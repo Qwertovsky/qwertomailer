@@ -36,7 +36,8 @@ public class Sender
 {
 
 	private Properties mailProp;
-	private Session session; 
+	private Session session;
+	private boolean traceMessages = false;
 	
 	final Logger logger = LoggerFactory.getLogger(Sender.class);
 
@@ -283,7 +284,7 @@ public class Sender
 			//send message
 			Transport.send(message);
 			
-			if(logger.isTraceEnabled())
+			if(traceMessages || logger.isTraceEnabled())
 			{
 				//save message to file messageId.eml and write log
 				String messageId = message.getMessageID();
@@ -538,5 +539,9 @@ public class Sender
 		message.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
 	}
 
-	
+	//--------------------------------------------
+	public void setTraceMessages(boolean trace)
+	{
+		this.traceMessages = trace;
+	}
 }
