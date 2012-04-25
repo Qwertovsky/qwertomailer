@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="build" name="Create Runnable Jar for Project QwertoMailer">
+<project default="build" name="Build QwertoMailer">
 	<scriptdef name="substring" language="javascript">
      <attribute name="text" />
      <attribute name="start" />
@@ -19,7 +19,12 @@
 			<pathelement path="${slf4j-api-jar}"/>
 			<pathelement path="${slf4j-log4j-jar}"/>
 			<pathelement path="${commons-cli-jar}"/>
+			<pathelement path="${commons-collections-jar}"/>
+			<pathelement path="${commons-lang-jar}"/>
+			<pathelement path="${velocity-jar}"/>
+			<pathelement path="${opencsv-jar}"/>
 			<pathelement path="${junit-jar}"/>
+			<pathelement path="${subethasmtp-jar}"/>
 		</path>
     </target>
 	
@@ -78,6 +83,10 @@
         <copy file="${javamail-jar}" todir="build/lib" />
         <copy file="${log4j-jar}" todir="build/lib" />
     	<copy file="${commons-cli-jar}" todir="build/lib" />
+		<copy file="${velocity-jar}" todir="build/lib" />
+		<copy file="${opencsv-jar}" todir="build/lib" />
+		<copy file="${commons-collections-jar}" todir="build/lib" />
+		<copy file="${commons-lang-jar}" todir="build/lib" />
     	<copy file="${slf4j-api-jar}" todir="build/lib" />
     	<copy file="${slf4j-log4j-jar}" todir="build/lib" />
 		<copy todir="build/doc">

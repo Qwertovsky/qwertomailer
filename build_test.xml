@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<project default="test" name="test">
+<project default="test" name="Testing QwertoMailer">
 	<target name="config">
         <property file="build.properties"/>
 		<path id="libPath">
@@ -8,7 +8,12 @@
 			<pathelement path="${slf4j-api-jar}"/>
 			<pathelement path="${slf4j-log4j-jar}"/>
 			<pathelement path="${commons-cli-jar}"/>
+			<pathelement path="${commons-collections-jar}"/>
+			<pathelement path="${commons-lang-jar}"/>
+			<pathelement path="${velocity-jar}"/>
+			<pathelement path="${opencsv-jar}"/>
 			<pathelement path="${junit-jar}"/>
+			<pathelement path="${subethasmtp-jar}"/>
 		</path>
     </target>
 	<target name="test" depends="config">
@@ -21,6 +26,7 @@
 			<test name="com.qwertovsky.mailer.MessageContentSSSSTest" outfile="TestResultMessageContentSSSS"/>
 			<test name="com.qwertovsky.mailer.MessageContentTest" outfile="TestResultMessageContent"/>
 			<test name="com.qwertovsky.mailer.SenderTest" outfile="TestResultSender"/>
+			<test name="com.qwertovsky.mailer.SenderParametersTest" outfile="TestResultSenderParameters"/>
 		</junit>
 	</target>
 </project>
