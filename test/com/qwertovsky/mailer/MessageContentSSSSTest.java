@@ -9,11 +9,14 @@ import java.util.Collection;
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.ParseException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import errors.QwertoMailerException;
 
 /**
  * @author Qwertovsky
@@ -27,6 +30,7 @@ public class MessageContentSSSSTest
 	String subject;
 	String charset;
 	
+	final static String BAD_CONTENT_TYPE = "test";
 	
 	@Parameters
 	public static Collection<Object[]> parameters() throws AddressException
@@ -46,7 +50,7 @@ public class MessageContentSSSSTest
 				, {"text (текст)", null, "", null} //Bad subject
 				, {"text (текст)", null, "subject (тема)", null} //Bad ContentType
 				, {"text (текст)", "", "subject (тема)", null} //Bad ContentType
-				, {"text (текст)", "text", "subject (тема)", null} //Bad ContentType
+				, {"text (текст)", BAD_CONTENT_TYPE, "subject (тема)", null} //Bad ContentType
 				,
 				{"text (текст)", "text/plain", "subject (тема)", null} 
 				, {"text (текст)", "text/plain", "subject (тема)", "windows-1251"} 
@@ -89,20 +93,18 @@ public class MessageContentSSSSTest
 			if(!message.getCharset().equalsIgnoreCase((charset==null?"utf-8":charset)))
 				fail("incorrect charset");
 			
-		} catch (Exception e)
+		} catch (QwertoMailerException qme)
 		{
-			if(e.getMessage().equals("Bad content"))
-				return;
-			if(e.getMessage().equals("Bad subject"))
-				return;
-			if(e.getMessage().startsWith("Bad ContentType"))
-				return;
-			
-			else
-			{
-				e.printStackTrace();
-				fail(e.getMessage());
-			}
+			//pass
+		} catch (ParseException pe)
+		{
+			if(contentType.equals(BAD_CONTENT_TYPE))
+				return; //pass
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 		
 	}

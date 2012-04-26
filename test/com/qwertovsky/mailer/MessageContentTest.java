@@ -3,6 +3,7 @@ package com.qwertovsky.mailer;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 import javax.mail.BodyPart;
@@ -10,6 +11,8 @@ import javax.mail.Multipart;
 import javax.mail.internet.InternetAddress;
 
 import org.junit.Test;
+
+import errors.QwertoMailerException;
 
 
 /**
@@ -26,56 +29,68 @@ public class MessageContentTest
 		File file1 = null;
 		File file2 = new File("");
 		File file3 = new File("test_notexists.eml");
-		File file4 = new File("test.eml");
+		File file4 = new File("test_bad_subject.eml");
+		File file5 = new File("test.eml");
 		
 		//not allow null file
 		try
 		{
 			MessageContent message = new MessageContent(file1);
-		} catch (Exception e)
+		} catch (NullPointerException npe)
 		{
-			if(e.getMessage().equals("EML file is null"))
-				;
-			else
-			{
-				e.printStackTrace();
-				fail(e.getMessage());
-			}
+			//pass
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 		//----------
 		//not exists file
 		try
 		{
 			MessageContent message = new MessageContent(file2);
-		} catch (Exception e)
+		} catch (FileNotFoundException e)
 		{
-			if(e.getMessage().equals("EML file not exists"))
-				;
-			else
-			{
-				e.printStackTrace();
-				fail(e.getMessage());
-			}
+			//pass
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 		//----------
 		//not exists file
 		try
 		{
-			MessageContent message = new MessageContent(file3);
-		} catch (Exception e)
+			MessageContent message = new MessageContent(file2);
+		} catch (FileNotFoundException e)
 		{
-			if(e.getMessage().equals("EML file not exists"))
-				;
-			else
-			{
-				e.printStackTrace();
-				fail(e.getMessage());
-			}
+			//pass
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		//----------
+		//bad subject
+		try
+		{
+			MessageContent message = new MessageContent(file4);
+		} catch(QwertoMailerException qme)
+		{
+			//pass
+		} 
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 		//----------
 		try
 		{
-			MessageContent message = new MessageContent(file4);
+			MessageContent message = new MessageContent(file5);
 			//data from file
 			if(!((String)message.getContent()).startsWith("<html>"))
 				fail("incorrect content");
@@ -110,30 +125,28 @@ public class MessageContentTest
 			{
 				message.setSubject(null);
 				fail("incorrect setSubject");
-			}catch(Exception se)
+			} catch (QwertoMailerException qme)
 			{
-				if(se.getMessage().equals("Bad subject"))
-					;
-				else
-				{
-					fail(se.getMessage());
-					se.printStackTrace();
-				}
+				//pass
+			}
+			catch(Exception se)
+			{
+				fail(se.getMessage());
+				se.printStackTrace();
 			}
 			//----------------
 			try
 			{
 				message.setSubject("");
 				fail("incorrect setSubject");
-			}catch(Exception se)
+			} catch (QwertoMailerException qme)
 			{
-				if(se.getMessage().equals("Bad subject"))
-					;
-				else
-				{
-					fail(se.getMessage());
-					se.printStackTrace();
-				}
+				//pass
+			}
+			catch(Exception se)
+			{
+				fail(se.getMessage());
+				se.printStackTrace();
 			}
 			//----------------
 			try
@@ -167,30 +180,26 @@ public class MessageContentTest
 			{
 				message.setAddressFrom(null, null, null);
 				fail("incorrect setAddressFrom");
+			} catch (QwertoMailerException qme)
+			{
+				//pass
 			}catch(Exception ae)
 			{
-				if("Bad email in FROM".equals(ae.getMessage()))
-					;
-				else
-				{
-					ae.printStackTrace();
-					fail(ae.getMessage());
-				}
+				ae.printStackTrace();
+				fail(ae.getMessage());
 			}
 			//----------------
 			try
 			{
 				message.setAddressFrom(null, "", null);
 				fail("incorrect setAddressFrom");
+			} catch (QwertoMailerException qme)
+			{
+				//pass
 			}catch(Exception ae)
 			{
-				if("Bad email in FROM".equals(ae.getMessage()))
-					;
-				else
-				{
-					ae.printStackTrace();
-					fail(ae.getMessage());
-				}
+				ae.printStackTrace();
+				fail(ae.getMessage());
 			}
 			//----------------
 			try
@@ -968,6 +977,86 @@ public class MessageContentTest
 	@Test
 	public void testSetParameters() throws Exception
 	{
+		/*
+		 * error
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test.eml"));
+			message.setParameters(new String[]{}
+				, new String[]{"message parameter","subject parameter"});
+			String html = (String) message.getContent();
+			if(!message.getContentType().startsWith("text/html"))
+					fail("incorrect setParameters");
+			String subject = message.getSubject();
+			if(!html.contains("<br />message parameter"))
+				fail("not correct message");
+			if(!subject.contains("subject parameter"))
+				fail("not correct subject");
+		} catch (QwertoMailerException qme)
+		{
+			//pass
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * error
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter"});
+			String html = (String) message.getContent();
+			if(!message.getContentType().startsWith("text/html"))
+					fail("incorrect setParameters");
+			String subject = message.getSubject();
+			if(!html.contains("<br />message parameter"))
+				fail("not correct message");
+			if(!subject.contains("subject parameter"))
+				fail("not correct subject");
+		} catch (QwertoMailerException qme)
+		{
+			//pass
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		/*
+		 * replace null to empty string
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test.eml"));
+			message.setParameters(new String[]{"message", "subject"}
+				, new String[]{"message parameter",null});
+			String html = (String) message.getContent();
+			if(!message.getContentType().startsWith("text/html"))
+					fail("incorrect setParameters");
+			String subject = message.getSubject();
+			if(!html.contains("<br />message parameter"))
+				fail("not correct message");
+			//$subject must be replaced to empty string
+			if(subject.contains("$subject"))
+				fail("not correct subject");
+		} catch (QwertoMailerException qme)
+		{
+			//pass
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		//--------------------
+		
 		/*
 		 * -html (content)
 		 */

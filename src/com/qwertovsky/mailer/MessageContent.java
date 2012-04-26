@@ -34,6 +34,8 @@ import javax.swing.text.html.parser.ParserDelegator;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
+import errors.QwertoMailerException;
+
 /**
  * Message with content, content type, charset
  * , contentTransferEncoding, subject and sender address
@@ -54,8 +56,10 @@ public class MessageContent
 	 * Create copy of MessageContent object
 	 * @param messageContent source object
 	 * @throws MessagingException
+	 * @throws NullPointerException MessageContent is null
 	 */
-	public MessageContent (MessageContent messageContent) throws MessagingException
+	public MessageContent (MessageContent messageContent)
+		throws MessagingException, NullPointerException
 	{
 		Object newContent = messageContent.getContent();
 		if(newContent instanceof String)
@@ -92,66 +96,59 @@ public class MessageContent
 	 * Only content, content type and subject will be get from file.<br />
 	 * Not allow create message with no subject or with empty subject. 
 	 * @param EMLFile file contains message in EML file format
-	 * @throws Exception EML file not exists, EML file is null, Bad subject
-	 * @throws IOException can't read file
+	 * @throws FileNotFoundException EML file not exists
+	 * @throws IOException 
 	 * @throws MessagingException
+	 * @throws NullPointerException EML file is null
+	 * @throws QwertoMailerException Subject can't be null or empty
 	 */
-	public MessageContent(File EMLFile) throws Exception
+	public MessageContent(File EMLFile)
+		throws QwertoMailerException
+		, FileNotFoundException
+		, MessagingException
+		, IOException
 	{
 		Session mailSession = Session.getDefaultInstance(new Properties(), null);
-		try
-		{
-			InputStream isEML = null;
-			if(EMLFile == null)
-				throw new Exception("EML file is null");
-			isEML = new FileInputStream(EMLFile);
-			Message message = new MimeMessage(mailSession, isEML);
-			content = message.getContent();
-			contentType = message.getContentType();
-			subject = message.getSubject();
-			if(subject == null || subject.equals(""))
-				throw new Exception("Bad subject");
-			//get charset
-			ContentType ct = new ContentType(contentType);
-			charset = ct.getParameter("charset");
-			if(charset == null)
-				charset = "UTF-8";
-			
-
-		} catch (FileNotFoundException e)
-		{
-			throw new Exception("EML file not exists");
-		} catch (MessagingException e)
-		{
-			throw e;
-		} catch (IOException e)
-		{
-			throw e;
-		}
+		InputStream isEML = null;
+		isEML = new FileInputStream(EMLFile);
+		Message message = new MimeMessage(mailSession, isEML);
+		content = message.getContent();
+		contentType = message.getContentType();
+		subject = message.getSubject();
+		if(subject == null || subject.equals(""))
+			throw new QwertoMailerException("Subject can't be null or empty");
+		//get charset
+		ContentType ct = new ContentType(contentType);
+		charset = ct.getParameter("charset");
+		if(charset == null)
+			charset = "UTF-8";
+		
 	}
+	
 	//--------------------------------------------
 	/**
-	 * Create message.<br />
+	 * Create message from text.<br />
 	 * Not allow create message with no subject or with empty subject
-	 * @param content 
-	 * @param contentType Mime type of content
+	 * @param content text
+	 * @param contentType Mime type of content ('text/plain' or 'text/html')
+	 * @param subject 
 	 * @param charset encoding of content (default is "utf-8")
-	 * @throws Exception if content is null or content is empty text line
-	 * 	, rise exception with message "Bad content"
-	 *  <br />- if content type is null or content type is empty text line, message "Bad ContentType"
+	 * @throws QwertoMailerException if content is null or content is empty text line
+	 * 	<br />- if content type is null or content type is empty text line, message "Bad ContentType"
 	 *  <br />- if subject is null or subject is empty text line, message "Bad subject"
-	 * @throws MessagingException
+	 * @throws ParseException Bad ContentType
 	 */
-	public MessageContent(String content, String contentType, String subject, String charset) throws Exception
+	public MessageContent(String content, String contentType, String subject, String charset)
+		throws QwertoMailerException, ParseException
 	{
 		//not allow content with no body parts
 		if(content == null || content.equals(""))
-			throw new Exception("Bad content");
+			throw new QwertoMailerException("Content can't be null or empty");
 		this.content = content;
 		
 		//not allow message with no subject
 		if(subject == null || subject.equals(""))
-			throw new Exception("Bad subject");
+			throw new QwertoMailerException("Subject can't be null or empty");
 		this.subject = subject;
 		
 		//set default charset
@@ -160,44 +157,45 @@ public class MessageContent
 		this.charset = charset;
 		
 		if(contentType == null || contentType.length() == 0)
-			throw new Exception("Bad ContentType");
+			throw new QwertoMailerException("Content type can't be null or empty");
+		
 		try
 		{
 			ContentType ct = new ContentType(contentType);
 			this.contentType = ct.getBaseType() + "; charset=" + charset;
-		}catch(ParseException pe)
+		} catch (ParseException pe)
 		{
-			throw new Exception("Bad ContentType: "+ pe.getMessage());
+			//specify that the problem relates to the ContentType
+			throw new ParseException("Bad ContentType: " + pe.getMessage());
 		}
-		
-		
 	}
+	
 	//--------------------------------------------
 	/**
 	 * Set subject
 	 * <br />Not allow null subject or empty subject
 	 * @param subject
-	 * @throws Exception "Bad subject" (null subject or empty subject)
+	 * @throws QwertoMailerException Subject can't be null or empty
 	 */
-	public void setSubject(String subject) throws Exception
+	public void setSubject(String subject) throws QwertoMailerException
 	{
 		if(subject == null || subject.equals(""))
-			throw new Exception("Bad subject");
+			throw new QwertoMailerException("Subject can't be null or empty");
 		this.subject = subject;
 	}
 	//--------------------------------------------
 	/**
 	 * Specify address in field From:
-	 * @param person - display name
-	 * @param email - email address
-	 * @param charset - encoding
-	 * @throws Exception "Bad email in FROM" (email is null or email is empty)
+	 * @param person display name
+	 * @param email email address
+	 * @param charset encoding
+	 * @throws QwertoMailerException email is null or email is empty
 	 * @throws UnsupportedEncodingException
 	 */
 	public void setAddressFrom(String person, String email, String charset) throws Exception
 	{
 		if(email == null || email.length() == 0)
-			throw new Exception ("Bad email in FROM");
+			throw new QwertoMailerException ("Email in FROM can't be null or empty");
 		addressFrom = new InternetAddress(email, person, charset);
 	}
 	//--------------------------------------------
@@ -280,12 +278,13 @@ public class MessageContent
 	 * @return Content-ID of attachment with &lt; &gt;
 	 * @throws MessagingException
 	 * @throws IOException
-	 * @throws IOException Inline image url is null or empty
+	 * @throws QwertoMailerException Inline image url is null or empty
 	 */
-	protected String addInlineAttachment(String path) throws MessagingException, IOException, Exception
+	protected String addInlineAttachment(String path)
+		throws MessagingException, IOException, QwertoMailerException
 	{
 		if(path == null || path.length() == 0)
-			throw new Exception("Inline image url is incorrect");
+			throw new QwertoMailerException("Inline image url can't be null or empty");
 		if(content instanceof Multipart
 				&& ((Multipart)content).getContentType().startsWith("multipart/mixed"))
 		{
@@ -657,8 +656,10 @@ public class MessageContent
 	 * @throws Exception 
 	 * @throws IOException 
 	 * @throws MessagingException 
+	 * @throws QwertoMailerException 
 	 */
-	public List<String> setRelated() throws MessagingException, IOException, Exception
+	public List<String> setRelated()
+		throws MessagingException, IOException, QwertoMailerException
 	{
 		List<String> paths = null;
 		//get html part content
@@ -938,31 +939,36 @@ public class MessageContent
 	//--------------------------------------------
 	/**
 	 * Put inline parameters in message
+	 * <br /> If header specified, but relevant parameter is null
+	 *  - $header will be replaced to empty string
 	 * @param headers array of parameter's headers
 	 * @param parameters array of parameters
 	 * @throws IOException
 	 * @throws MessagingException
 	 * @throws org.apache.velocity.runtime.parser.ParseException
-	 * @throws Exception Bad parameters for message,
+	 * @throws QwertoMailerException Headers can't be null or have length equal to 0,
+	 * <br />Parameters can't be null or have length equal to 0
 	 * <br />Parameters must be not less then headers
 	 */
 	public void setParameters(String[] headers, String[] parameters)
 		throws IOException, MessagingException
 		, org.apache.velocity.runtime.parser.ParseException
-		, Exception
+		, QwertoMailerException
 	{
 		if(headers == null || headers.length == 0)
-			throw new Exception("Parameters headers must be");
+			throw new QwertoMailerException("Headers can't be null or have length equal to 0");
 		if(parameters == null || parameters.length == 0)
-			throw new Exception("Bad parameters for message");
+			throw new QwertoMailerException("Parameters can't be null or have length equal to 0");
+		if(parameters.length < headers.length)
+			throw new QwertoMailerException("Parameters must be not less then headers");
 		
 		VelocityContext context = new VelocityContext();
 		for(int i=0; i < headers.length; i++)
 		{	
-			if(parameters.length <= i)
-				throw new Exception("Parameters must be not less then headers");
 			if(headers[i] == null || headers[i].length() == 0)
 				continue;
+			if(parameters[i] == null)
+				parameters[i] = "";
 			context.put(headers[i], parameters[i]);
 		}
 		
