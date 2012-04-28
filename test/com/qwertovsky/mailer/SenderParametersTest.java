@@ -3,9 +3,11 @@ package com.qwertovsky.mailer;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
 import javax.mail.Message.RecipientType;
 import javax.mail.internet.InternetAddress;
@@ -15,9 +17,12 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.velocity.runtime.parser.ParseException;
 import org.junit.Test;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
+
+import errors.QwertoMailerException;
 
 public class SenderParametersTest
 {
@@ -41,7 +46,8 @@ public class SenderParametersTest
 	
 	//--------------------------------------------
 	@Test
-	public void testSendParameters() throws NoSuchProviderException, Exception
+	public void testSendParameters()
+	throws QwertoMailerException, MessagingException, IOException, ParseException
 	{
 		//error
 		Sender sender = new Sender("localhost",2500,null,null,null);
@@ -61,15 +67,20 @@ public class SenderParametersTest
 		try
 		{
 			sender.send(messageContent, personParamHeaders, personParameters);
-		}catch(Exception e)
+		} catch (QwertoMailerException qme)
 		{
-			if(!"Bad email in FROM".equals(e.getMessage()))
-				fail("incorrect send");
+			//pass
+			//From email has not been specified
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect send");
 		}
 		
 		//--------------------
 		//error
-		messageContent.setAddressFrom("from", "addressFrom", "utf-8");
+		messageContent.setAddressFrom("from", "addressFrom@domain", "utf-8");
 		try
 		{
 			sender.send(messageContent, personParamHeaders, personParameters);
@@ -157,6 +168,46 @@ public class SenderParametersTest
 	
 	//--------------------------------------------
 	@Test
+	public void testSendParametersHaltOnFailure()
+	throws QwertoMailerException, MessagingException, IOException, ParseException
+	{
+		//error
+		Sender sender = new Sender("localhost",2500,null,null,null);
+		MessageContent messageContent = new MessageContent("message $message"
+				, "text/plain", "subject $subject", "utf-8");
+		String[] personParamHeaders = new String[]{"message", "subject", "parameter"
+				, "email"};
+		ArrayList<String[]> personParameters = new ArrayList<String[]>();
+		String[] parameters = new String[]{"message1"
+				, "subject1", "parameter1", "address1"};
+		personParameters.add(parameters);
+		parameters = new String[]{"message2"
+				, "subject2", "parameter2", "address2"};
+		personParameters.add(parameters);
+		parameters = new String[]{"message3"
+				, "subject3", "parameter3", "address3"};
+		personParameters.add(parameters);
+		messageContent.setAddressFrom("from", "addressFrom@domain", "utf-8");
+		try
+		{
+			sender.send(messageContent, personParamHeaders, personParameters, true);
+		} catch (QwertoMailerException qme)
+		{
+			//pass
+			//Halt on failure
+			
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect send");
+		}
+		
+		
+	}
+	
+	//--------------------------------------------
+	@Test
 	public void testGetEmailIndexes() 
 	throws NoSuchProviderException, Exception
 	{
@@ -194,21 +245,21 @@ public class SenderParametersTest
 	public void testGetRecipientsList() throws NoSuchProviderException, Exception
 	{
 		Sender sender = new Sender("localhost",2500,null,null,null);
-		String[] parameters = new String[]{"address1, address2"
-				, "address3 address4"
+		String[] parameters = new String[]{"address1@domain, address2@domain"
+				, "address3@domain address4@domain"
 				, "parameter"
-				, " address5 "
-				, "address6"};
+				, " address5@domain "
+				, "address6@domain"};
 		int[] indexes = new int[]{0,1,3,4};
 		InternetAddress[] recipients = sender.getRecipientsList(indexes, parameters);
 		if(recipients == null || recipients.length != 6)
 			fail("incorrect getRecipientsList");
-		assertEquals("incorrect getRecipientsList","address1",recipients[0].getAddress());
-		assertEquals("incorrect getRecipientsList","address2",recipients[1].getAddress());
-		assertEquals("incorrect getRecipientsList","address3",recipients[2].getAddress());
-		assertEquals("incorrect getRecipientsList","address4",recipients[3].getAddress());
-		assertEquals("incorrect getRecipientsList","address5",recipients[4].getAddress());
-		assertEquals("incorrect getRecipientsList","address6",recipients[5].getAddress());
+		assertEquals("incorrect getRecipientsList","address1@domain",recipients[0].getAddress());
+		assertEquals("incorrect getRecipientsList","address2@domain",recipients[1].getAddress());
+		assertEquals("incorrect getRecipientsList","address3@domain",recipients[2].getAddress());
+		assertEquals("incorrect getRecipientsList","address4@domain",recipients[3].getAddress());
+		assertEquals("incorrect getRecipientsList","address5@domain",recipients[4].getAddress());
+		assertEquals("incorrect getRecipientsList","address6@domain",recipients[5].getAddress());
 	}
 	
 	//--------------------------------------------

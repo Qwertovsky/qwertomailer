@@ -13,7 +13,6 @@ import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import javax.mail.Address;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -108,7 +107,7 @@ class Mailer
 		String subject = null;
 		String emailFrom = null;
 		String personFrom = null;
-		ArrayList<Address> emailsTo = new ArrayList<Address>();
+		ArrayList<InternetAddress> emailsTo = new ArrayList<InternetAddress>();
 		ArrayList<String[]> personParameters = new ArrayList<String[]>();
 		String[] personParamHeaders = null;
 		

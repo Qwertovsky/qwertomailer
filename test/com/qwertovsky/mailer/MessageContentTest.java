@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.mail.BodyPart;
 import javax.mail.Multipart;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import org.junit.Test;
@@ -194,6 +195,19 @@ public class MessageContentTest
 				message.setAddressFrom(null, "", null);
 				fail("incorrect setAddressFrom");
 			} catch (QwertoMailerException qme)
+			{
+				//pass
+			}catch(Exception ae)
+			{
+				ae.printStackTrace();
+				fail(ae.getMessage());
+			}
+			//----------------
+			try
+			{
+				message.setAddressFrom(null, "from", null);
+				fail("incorrect setAddressFrom");
+			} catch (AddressException ae)
 			{
 				//pass
 			}catch(Exception ae)

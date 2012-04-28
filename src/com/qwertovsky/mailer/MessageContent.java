@@ -23,6 +23,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -47,7 +48,7 @@ public class MessageContent
 	private Object content = null;
 	private String contentType = null;
 	private String subject = null;
-	private Address addressFrom = null;
+	private InternetAddress addressFrom = null;
 	private String charset = "UTF-8";
 	private String contentTransferEncoding = "8bit";
 	
@@ -190,13 +191,16 @@ public class MessageContent
 	 * @param email email address
 	 * @param charset encoding
 	 * @throws QwertoMailerException email is null or email is empty
+	 * @throws AddressException 
 	 * @throws UnsupportedEncodingException
 	 */
-	public void setAddressFrom(String person, String email, String charset) throws Exception
+	public void setAddressFrom(String person, String email, String charset)
+		throws QwertoMailerException, AddressException, UnsupportedEncodingException
 	{
 		if(email == null || email.length() == 0)
 			throw new QwertoMailerException ("Email in FROM can't be null or empty");
 		addressFrom = new InternetAddress(email, person, charset);
+		addressFrom.validate();
 	}
 	//--------------------------------------------
 	/**

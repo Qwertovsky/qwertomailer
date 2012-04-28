@@ -1,7 +1,6 @@
 package com.qwertovsky.mailer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,7 +12,6 @@ import javax.mail.Authenticator;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
-import javax.mail.NoSuchProviderException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -22,8 +20,11 @@ import javax.mail.internet.InternetAddress;
 
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import errors.QwertoMailerException;
 
 /**
  * Send messages.<br \>
@@ -38,6 +39,8 @@ public class Sender
 	private Properties mailProp;
 	private Session session;
 	private boolean traceMessages = false;
+	private List<String> badEmails;
+	private List<String[]> badParameters;
 	
 	final Logger logger = LoggerFactory.getLogger(Sender.class);
 
@@ -49,17 +52,15 @@ public class Sender
 	 * @param smtpUser SMTP server account
 	 * @param smtpPassword SMTP server password
 	 * @param hostname local machine name
-	 * @throws Exception SMTP server is not specified (NULL or empty)
-	 * @throws NoSuchProviderException
+	 * @throws QwertoMailerException SMTP server is not specified (NULL or empty)
+	 * @throws MessagingException 
 	 */
 	public Sender(String smtpHostName, int smtpPort, final String smtpUser,
 			final String smtpPassword, String hostname)
-		throws Exception, NoSuchProviderException
+		throws QwertoMailerException, MessagingException
 	{
-
-		
 		if(smtpHostName == null || smtpHostName.length() == 0)
-			throw new Exception("SMTP server is not specified");
+			throw new QwertoMailerException("SMTP server is not specified");
 		if(smtpPort == 0)
 			smtpPort = 25;
 		if(hostname == null)
@@ -78,6 +79,8 @@ public class Sender
 		mailProp.put("mail.smtp.auth", "true");
 		mailProp.put("mail.smtp.starttls.enable", "true");
 		mailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+		mailProp.put("mail.smtp.socketFactory.port", smtpPort);
+//		mailProp.put("mail.smtp.socketFactory.fallback", "false");
 		
 		//create session
 		if(smtpUser != null && smtpPassword != null)
@@ -103,38 +106,63 @@ public class Sender
 			session = Session.getInstance(mailProp,	authenticator);
 		}
 		//check mail server
-		try
-		{
-			Transport transport = session.getTransport();
-			transport.connect();
-			transport.close();
-		}catch(NoSuchProviderException nspe)
-		{
-			throw nspe;
-		}
+		Transport transport = session.getTransport("smtp");
+		transport.connect();
+		transport.close();
+		
 	}
 		
 	//-----------------------------------------------
 	/**
+	 * 
 	 * Send personal messages to recipients
 	 * @param messageContent message content
 	 * @param emailsTo list of recipients
-	 * @throws Exception
+	 * @throws QwertoMailerException Message is null
+	 * , From email has not been specified
+	 * , Recipients list is empty
+	 * @throws MessagingException  
+	 * @see {@link #send(MessageContent, List, boolean)} 
+	 */
+	public void send(MessageContent messageContent, List<InternetAddress> emailsTo)
+	throws QwertoMailerException, MessagingException
+		
+	{
+		send(messageContent, emailsTo, false);
+	}
+	
+	//-----------------------------------------------
+	/**
+	 * 
+	 * Send personal messages to recipients
+	 * <br />If {@code haltOnFailure} is true and bad emails present
+	 * , throw {@link QwertoMailerException}. Default value of  {@code haltOnFailure} is false.
+	 * @param messageContent message content
+	 * @param emailsTo list of recipients
+	 * @param haltOnFailure
+	 * @throws QwertoMailerException Message is null
+	 * , From email has not been specified
+	 * , Recipients list is empty
+	 * , Halt on failure (bad emails present)
+	 * @throws MessagingException 
+	 * @see {@link #send(MessageContent, List)} 
 	 * 
 	 */
-	public void send(MessageContent messageContent, List<Address> emailsTo)
-		throws Exception
+	public void send(MessageContent messageContent, List<InternetAddress> emailsTo
+			, boolean haltOnFailure)
+	throws QwertoMailerException, MessagingException
+		
 	{
 		if(messageContent == null)
-			throw new Exception("Message is not created");
+			throw new QwertoMailerException("Message is null");
 		String charset = messageContent.getCharset();
 		Address from = messageContent.getAddressFrom();
 		if(from == null)
-			throw new Exception("Bad email in FROM");
+			throw new QwertoMailerException("From email has not been specified");
 	
 		if(emailsTo == null || emailsTo.isEmpty())
 		{
-			throw new Exception("Recipients list is empty");
+			throw new QwertoMailerException("Recipients list is empty");
 		}
 		
 		mailProp.put("mail.mime.charset", charset);
@@ -142,23 +170,37 @@ public class Sender
 		//create messages
 		ArrayList<Message> messages = new ArrayList<Message>();
 		logger.info("Create personal messages");
-		for(Address emailTo:emailsTo)
+		badEmails = new ArrayList<String>();
+		for(InternetAddress emailTo:emailsTo)
 		{
-			Message message = new Message(session);
 			try
 			{
+				emailTo.validate();
+				Message message = new Message(session);
 				makeMessage(message, messageContent);
 				message.setRecipient(RecipientType.TO, emailTo);
+				messages.add(message);
+			} catch(AddressException ae)
+			{
+				//bad address of recipient
+				logger.error("Email " + emailTo.getAddress() + " is incorrect: "
+						+ ae.getMessage());
+				badEmails.add(emailTo.getAddress());
 			} catch (MessagingException e)
 			{
-				logger.warn("Message has not been created for "+ emailTo + "("+e.getMessage()+")");
-				continue;
+				logger.error("Message has not been created for "+ emailTo + "("+e.getMessage()+")");
+				throw e;
 			}
-			messages.add(message);
+		}
+		
+		//halt on failure
+		if(haltOnFailure && !badEmails.isEmpty())
+		{
+			throw new QwertoMailerException("Halt on failure");
 		}
 		
 		//send messages
-		logger.info("Start sending");
+		logger.info("Start sending: " + messages.size() + " messages");
 		for(Message message:messages)
 		{
 			sendMessage(message);
@@ -173,21 +215,57 @@ public class Sender
 	 * @param messageContent message content
 	 * @param personParamHeaders headers of parameters
 	 * @param personParameters list of parameters
-	 * @throws Exception
+	 * @throws QwertoMailerException Message is null
+	 * , From email has not been specified
+	 * , Recipients list is empty
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws MessagingException
+	 * @see {@link #send(MessageContent, String[], List, boolean)} 
+	 * 
 	 */
 	public void send(MessageContent messageContent, String[] personParamHeaders,
-			ArrayList<String[]> personParameters) throws Exception
+			List<String[]> personParameters)
+	throws QwertoMailerException, IOException, MessagingException, ParseException
+	{
+		send(messageContent, personParamHeaders, personParameters, false);
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Send messages. One array of parameters - one message.
+	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />If {@code haltOnFailure} is true and bad emails present
+	 * , throw {@link QwertoMailerException}. Default value of  {@code haltOnFailure} is false.
+	 * @param messageContent message content
+	 * @param personParamHeaders headers of parameters
+	 * @param personParameters list of parameters
+	 * @param haltOnFailure
+	 * @throws QwertoMailerException Message is null
+	 * , From email has not been specified
+	 * , Recipients list is empty
+	 * , Emails not present in file
+	 * , Halt on failure (bad emails present)
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws MessagingException
+	 * @see {@link #send(MessageContent, String[], List)} 
+	 * 
+	 */
+	public void send(MessageContent messageContent, String[] personParamHeaders,
+			List<String[]> personParameters, boolean haltOnFailure)
+	throws QwertoMailerException, IOException, MessagingException, ParseException
 	{
 		if(messageContent == null)
-			throw new Exception("Message is not created");
+			throw new QwertoMailerException("Message is null");
 		String charset = messageContent.getCharset();
 		Address from = messageContent.getAddressFrom();
 		if(from == null)
-			throw new Exception("Bad email in FROM");
+			throw new QwertoMailerException("From email has not been specified");
 	
 		if(personParameters == null || personParameters.isEmpty())
 		{
-			throw new Exception("Recipients list is empty");
+			throw new QwertoMailerException("Recipients list is empty");
 		}
 		
 		mailProp.put("mail.mime.charset", charset);
@@ -197,21 +275,40 @@ public class Sender
 			"com.qwertovsky.mailer");
 		Velocity.init();
 		
+		
+		badEmails = new ArrayList<String>();
+		badParameters = new ArrayList<String[]>();
+		
 		//get indexes of emails (email%) and attachments (attach%)
 		int[] emailIndexes = getEmailIndexes(personParamHeaders);
 		int[] attachIndexes = getAttachIndexes(personParamHeaders);
 		
 		//recipients must be
 		if(emailIndexes.length == 0)
-			throw new Exception("Emails not present in file");
+			throw new QwertoMailerException("Emails not present in file");
 		
 		//create messages
 		ArrayList<Message> messages = new ArrayList<Message>();
+		
 		logger.info("Create personal messages");
+		
 		for(String[] parameters:personParameters)
 		{
 			//get emails
 			InternetAddress[] recipientsArray = getRecipientsList(emailIndexes, parameters);
+			if(recipientsArray == null)
+			{
+				StringBuilder sb = new StringBuilder();
+				for(int i = 0; i < parameters.length; i++)
+				{
+					sb.append("\"" + parameters[i] + "\"");
+					if((i + 1) < parameters.length)
+						sb.append(", ");
+				}
+				logger.error("Recipients list is empty: " + sb.toString());
+				badParameters.add(parameters);
+				continue;
+			}
 			
 			//get attachments
 			List<File> attachments = getAttachments(attachIndexes, parameters);
@@ -222,28 +319,21 @@ public class Sender
 			try
 			{
 				content.setParameters(personParamHeaders, parameters);
-			}
-			catch(Exception e)
+			} catch (QwertoMailerException qme)
 			{
-				if("Bad parameters for message".equals(e.getMessage())
-						|| "Parameters must be not less then headers".equals(e.getMessage()))
+				StringBuilder sb = new StringBuilder();
+				sb.append("Message has not been created (" + qme.getMessage() + ") for: ");
+				for(int i = 0; i < parameters.length; i++)
 				{
-					StringBuilder sb = new StringBuilder();
-					sb.append("Message has not been created (" + e.getMessage() + ") for: ");
-					for(int i = 0; i < parameters.length; i++)
-					{
-						sb.append("\"" + parameters[i] + "\"");
-						if((i + 1) < parameters.length)
-							sb.append(", ");
-					}
-					logger.error(sb.toString());
-					continue;
+					sb.append("\"" + parameters[i] + "\"");
+					if((i + 1) < parameters.length)
+						sb.append(", ");
 				}
-				else
-					//bad parameters, bad format parameters file
-					//stop create messages
-					throw e;
+				logger.error(sb.toString());
+				badParameters.add(parameters);
+				continue;
 			}
+			
 			
 			Message message = new Message(session);
 			try
@@ -254,10 +344,14 @@ public class Sender
 			{
 				logger.error("Message has not been created for "
 						+ recipientsArray[0].getAddress() + "("+e.getMessage()+")");
-				continue;
+				throw e;
 			}
 			messages.add(message);
 		}
+		
+		//halt on failure
+		if(haltOnFailure && (!badEmails.isEmpty() || !badParameters.isEmpty()))
+			throw new QwertoMailerException("Halt on failure");
 		
 		//send messages
 		logger.info("Start sending");
@@ -287,28 +381,21 @@ public class Sender
 			if(traceMessages || logger.isTraceEnabled())
 			{
 				//save message to file messageId.eml and write log
-				String messageId = message.getMessageID();
-				messageId = messageId.substring(1, messageId.length()-1);
-				File dir = new File("messages");
-				if(!dir.exists())
-					dir.mkdir();
-				File file = new File("messages/" + messageId + ".eml");
+				String messageId = null;
 				try
 				{
+					messageId = message.getMessageID();
+					messageId = messageId.substring(1, messageId.length()-1);
+					File dir = new File("messages");
+					if(!dir.exists())
+						dir.mkdir();
+					File file = new File("messages/" + messageId + ".eml");
 					message.writeTo(new FileOutputStream(file));
-				} catch (FileNotFoundException e)
+				} catch (Exception e)
 				{
 					logger.warn("Error save message: " + messageId
 							+ "(" + e.getMessage() + ")");
-				} catch (IOException e)
-				{
-					logger.warn("Error save message: " + messageId
-							+ "(" + e.getMessage() + ")");
-				} catch (MessagingException e)
-				{
-					logger.warn("Error save message: " + messageId
-							+ "(" + e.getMessage() + ")");
-				}
+				} 
 				
 				//log about send message
 				//append recipients to log message
@@ -326,13 +413,13 @@ public class Sender
 					}
 					if(i < recipients.length)
 						sb.append("...");
-				} catch (MessagingException e1)
+				} catch (Exception e1)
 				{
 					sb.append("error get recipients");
 				}
 				logger.trace("Message " + messageId +" has been send to: " + sb.toString());
 			}
-		} catch (MessagingException me)
+		} catch (Exception me)
 		{
 			//log about not send message
 			//append recipients to log message
@@ -350,7 +437,7 @@ public class Sender
 				}
 				if(i < recipients.length)
 					sb.append("...");
-			} catch (MessagingException e1)
+			} catch (Exception e1)
 			{
 				sb.append("error get recipients");
 			}
@@ -379,11 +466,16 @@ public class Sender
 				continue;
 			if(header.toLowerCase().trim().startsWith("email"))
 			{
-				int[] temp = emailIndexes.clone();
-				emailIndexes = new int[emailIndexes.length + 1];
-				System.arraycopy(temp, 0, emailIndexes, 0, temp.length);
-				emailIndexes[emailIndexes.length-1] = i;
-				continue;
+				try
+				{
+					int[] temp = emailIndexes.clone();
+					emailIndexes = new int[emailIndexes.length + 1];
+					System.arraycopy(temp, 0, emailIndexes, 0, temp.length);
+					emailIndexes[emailIndexes.length-1] = i;
+				} catch (Exception e)
+				{
+					//nothing
+				}
 			}
 		}
 		return emailIndexes;
@@ -408,11 +500,16 @@ public class Sender
 				continue;
 			if(header.toLowerCase().trim().startsWith("attach"))
 			{
-				int[] temp = attachIndexes.clone();
-				attachIndexes = new int[attachIndexes.length + 1];
-				System.arraycopy(temp, 0, attachIndexes, 0, temp.length);
-				attachIndexes[attachIndexes.length-1] = i;
-				continue;
+				try
+				{
+					int[] temp = attachIndexes.clone();
+					attachIndexes = new int[attachIndexes.length + 1];
+					System.arraycopy(temp, 0, attachIndexes, 0, temp.length);
+					attachIndexes[attachIndexes.length-1] = i;
+				} catch (Exception e)
+				{
+					//nothing
+				}
 			}
 		}
 		return attachIndexes;
@@ -437,26 +534,40 @@ public class Sender
 			if(parameters.length <= index)
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append("Attachment not present in column " + index + " (first is 0):");
 				for(int i = 0; i < parameters.length; i++)
 				{
 					sb.append("\"" + parameters[i] + "\"");
 					if((i + 1) < parameters.length)
 						sb.append(", ");
 				}
-				logger.warn(sb.toString());
-				continue;
+				logger.error("Attachment not present in column " + index + " (first is 0):"
+						 + sb.toString());
+				badParameters.add(parameters);
+				return attachments;
 			}
-			String fileString = parameters[index];
-			fileString = fileString.trim();
-			if(fileString == null || fileString.length() == 0)
-				continue;
-			File file = new File(fileString);
-			if(file.exists())
-				attachments.add(file);
-			else
+			
+			try
 			{
-				logger.warn("File " + fileString + " not exists");
+				String fileString = parameters[index];
+				if(fileString == null)
+					continue;
+				fileString = fileString.trim();
+				if(fileString.length() == 0)
+					continue;
+				File file = new File(fileString);
+				if(file.exists())
+					attachments.add(file);
+				else
+				{
+					logger.error("File " + fileString + " not exists");
+					if(badParameters != null)
+						badParameters.add(parameters);
+				}
+			} catch (Exception e)
+			{
+				logger.error("Error on get attachments: " + e.getMessage());
+				if(badParameters != null)
+					badParameters.add(parameters);
 			}
 		}
 		return attachments;
@@ -481,18 +592,23 @@ public class Sender
 			if(parameters.length <= index)
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append("Email not present in column " + index + " (first is 0):");
 				for(int i = 0; i < parameters.length; i++)
 				{
 					sb.append("\"" + parameters[i] + "\"");
 					if((i + 1) < parameters.length)
 						sb.append(", ");
 				}
-				logger.warn(sb.toString());
+				logger.error("Email not present in column " + index + " (first is 0):"
+						 + sb.toString());
+				if(badParameters != null)
+					badParameters.add(parameters);
 				continue;
 			}
 			String emailString = parameters[index];
 			if(emailString == null)
+				continue;
+			emailString = emailString.trim();
+			if(emailString.length() == 0)
 				continue;
 			String[] emails = emailString.split(",| ");
 			for(String email:emails)
@@ -501,16 +617,24 @@ public class Sender
 					continue;
 				try
 				{
-					recipientsList.add(new InternetAddress(email));
+					InternetAddress address = new InternetAddress(email);
+					address.validate();
+					recipientsList.add(address);
 				}catch(AddressException ae)
 				{
-					logger.warn(email + ":" + ae.getMessage());
+					logger.warn("Email " + email + " is incorrect: " + ae.getMessage());
+					if(badEmails != null)
+						badEmails.add(email);
 				}
 			}
 		}
 		if(recipientsList == null || recipientsList.isEmpty())
+		{
 			return null;
+		}
 		return recipientsList.toArray(new InternetAddress[0]);
+		
+
 	}
 
 	//-----------------------------------------------
@@ -543,5 +667,25 @@ public class Sender
 	public void setTraceMessages(boolean trace)
 	{
 		this.traceMessages = trace;
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Get bad emails of recipients, that were in the last send operation.
+	 * @return bad email addresses
+	 */
+	public List<String> getBadEmails()
+	{
+		return badEmails;
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Get bad parameters of recipients, that were in the last send operation.
+	 * @return bad parameters
+	 */
+	public List<String[]> getBadParameters()
+	{
+		return badParameters;
 	}
 }
