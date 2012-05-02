@@ -122,7 +122,8 @@ public class Sender
 	 * , From email has not been specified
 	 * , Recipients list is empty
 	 * @throws MessagingException  
-	 * @see {@link #send(MessageContent, List, boolean)} 
+	 * @see #send(MessageContent, List, boolean)
+	 * 
 	 */
 	public void send(MessageContent messageContent, List<InternetAddress> emailsTo)
 	throws QwertoMailerException, MessagingException
@@ -145,7 +146,7 @@ public class Sender
 	 * , Recipients list is empty
 	 * , Halt on failure (bad emails present)
 	 * @throws MessagingException 
-	 * @see {@link #send(MessageContent, List)} 
+	 * @see #send(MessageContent, List) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, List<InternetAddress> emailsTo
@@ -221,7 +222,7 @@ public class Sender
 	 * @throws ParseException 
 	 * @throws IOException 
 	 * @throws MessagingException
-	 * @see {@link #send(MessageContent, String[], List, boolean)} 
+	 * @see #send(MessageContent, String[], List, boolean) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, String[] personParamHeaders,
@@ -235,7 +236,7 @@ public class Sender
 	/**
 	 * Send messages. One array of parameters - one message.
 	 * <br />Headers must contain "email*". Headers may contain "attach*".
-	 * <br />If {@code haltOnFailure} is true and bad emails present
+	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
 	 * , throw {@link QwertoMailerException}. Default value of  {@code haltOnFailure} is false.
 	 * @param messageContent message content
 	 * @param personParamHeaders headers of parameters
@@ -249,7 +250,7 @@ public class Sender
 	 * @throws ParseException 
 	 * @throws IOException 
 	 * @throws MessagingException
-	 * @see {@link #send(MessageContent, String[], List)} 
+	 * @see #send(MessageContent, String[], List) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, String[] personParamHeaders,
