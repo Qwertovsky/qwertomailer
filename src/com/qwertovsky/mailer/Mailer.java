@@ -128,25 +128,31 @@ class Mailer
 			logger.setLevel(Level.TRACE);
 		}
 		smtpHost = commandLine.getOptionValue("smtpHost");
-		try
+		if(commandLine.hasOption("smtpPort"))
 		{
-			long port = (Long)commandLine.getParsedOptionValue("smtpPort");
-			smtpPort = (int) port;
-		} catch (ParseException pe)
-		{
-			logger.error("smtpPort has bad format");
-			System.err.println("smtpPort has bad format");
-			System.exit(1);
-		} catch (ClassCastException cce)
-		{
-			logger.error("smtpPort has bad format");
-			System.err.println("smtpPort has bad format");
-			System.exit(1);
+			try
+			{
+				long port = (Long)commandLine.getParsedOptionValue("smtpPort");
+				smtpPort = (int) port;
+			} catch (ParseException pe)
+			{
+				logger.error("smtpPort has bad format");
+				System.err.println("smtpPort has bad format");
+				System.exit(1);
+			} catch (ClassCastException cce)
+			{
+				logger.error("smtpPort has bad format");
+				System.err.println("smtpPort has bad format");
+				System.exit(1);
+			}
 		}
 		
-		smtpUser = commandLine.getOptionValue("smtpUser");
-		smtpPassword = commandLine.getOptionValue("smtpPassword");
-		hostname = commandLine.getOptionValue("hostname");
+		if(commandLine.hasOption("smtpUser"))
+			smtpUser = commandLine.getOptionValue("smtpUser");
+		if(commandLine.hasOption("smtpPassword"))
+			smtpPassword = commandLine.getOptionValue("smtpPassword");
+		if(commandLine.hasOption("hostname"))
+			hostname = commandLine.getOptionValue("hostname");
 		charset = commandLine.getOptionValue("charset", "UTF-8");
 		contentTransferEncoding = commandLine.getOptionValue("mimeTransport", "8bit");
 		
@@ -179,7 +185,8 @@ class Mailer
 		}
 		
 		emailFrom = commandLine.getOptionValue("emailFrom");
-		personFrom = commandLine.getOptionValue("personFrom");
+		if(commandLine.hasOption("personFrom"))
+			personFrom = commandLine.getOptionValue("personFrom");
 		
 		if(commandLine.hasOption("emailTo"))
 		{
