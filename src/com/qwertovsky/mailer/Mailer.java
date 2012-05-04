@@ -120,7 +120,7 @@ class Mailer
 			logger.error(pe.getMessage());
 			HelpFormatter helpFormatter = new HelpFormatter();
 			helpFormatter.printHelp("java -jar qwertomailer.jar", options, true);
-			System.exit(1);
+			return;
 		}
 		
 		if(commandLine.hasOption("trace"))
@@ -138,12 +138,12 @@ class Mailer
 			{
 				logger.error("smtpPort has bad format");
 				System.err.println("smtpPort has bad format");
-				System.exit(1);
+				return;
 			} catch (ClassCastException cce)
 			{
 				logger.error("smtpPort has bad format");
 				System.err.println("smtpPort has bad format");
-				System.exit(1);
+				return;
 			}
 		}
 		
@@ -170,7 +170,7 @@ class Mailer
 			{
 				logger.error("EML file not exists");
 				System.err.println("EML file not exists");
-				System.exit(1);
+				return;
 			}
 		}
 		
@@ -256,7 +256,7 @@ class Mailer
 		{
 			logger.error(e.getMessage());
 			System.err.println(e.getMessage());
-			System.exit(1);
+			return;
 		}
 		
 		//create message

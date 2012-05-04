@@ -48,7 +48,7 @@
 	</target>
 	
 	<target name="test" depends="config,compile">
-		<junit haltonfailure="true" haltonerror="true">
+		<junit haltonfailure="true" haltonerror="true" fork="on">
 			<classpath>
 				<pathelement path="./bin" />
 				<path refid="libPath"/>
@@ -57,6 +57,7 @@
 			<test name="com.qwertovsky.mailer.MessageContentSSSSTest" outfile="TestResultMessageContentSSSS"/>
 			<test name="com.qwertovsky.mailer.MessageContentTest" outfile="TestResultMessageContent"/>
 			<test name="com.qwertovsky.mailer.SenderTest" outfile="TestResultSender"/>
+			<test name="com.qwertovsky.mailer.MailerTest" outfile="TestResultMailer"/>
 		</junit>
 	</target>
 	

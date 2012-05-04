@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <project default="test" name="Testing QwertoMailer">
 	
 	<target name="config">
@@ -39,7 +39,7 @@
 	
 	
 	<target name="test" depends="compile">
-		<junit haltonfailure="true" haltonerror="true">
+		<junit haltonfailure="true" haltonerror="true" fork="on">
 			<classpath>
 				<pathelement path="./bin" />
 				<path refid="libPath"/>
@@ -49,6 +49,7 @@
 			<test name="com.qwertovsky.mailer.MessageContentTest" outfile="TestResultMessageContent"/>
 			<test name="com.qwertovsky.mailer.SenderTest" outfile="TestResultSender"/>
 			<test name="com.qwertovsky.mailer.SenderParametersTest" outfile="TestResultSenderParameters"/>
+			<test name="com.qwertovsky.mailer.MailerTest" outfile="TestResultMailer"/>
 		</junit>
 	</target>
 </project>
