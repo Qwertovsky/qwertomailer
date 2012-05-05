@@ -35,7 +35,8 @@ import javax.swing.text.html.parser.ParserDelegator;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
-import errors.QwertoMailerException;
+import com.qwertovsky.mailer.errors.QwertoMailerException;
+
 
 /**
  * Message with content, content type, charset

@@ -13,7 +13,8 @@ import javax.mail.internet.InternetAddress;
 
 import org.junit.Test;
 
-import errors.QwertoMailerException;
+import com.qwertovsky.mailer.errors.QwertoMailerException;
+
 
 
 /**

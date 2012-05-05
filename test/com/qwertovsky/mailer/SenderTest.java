@@ -27,7 +27,8 @@ import org.junit.runners.Parameterized.Parameters;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
-import errors.QwertoMailerException;
+import com.qwertovsky.mailer.errors.QwertoMailerException;
+
 
 /**
  * @author Qwertovsky

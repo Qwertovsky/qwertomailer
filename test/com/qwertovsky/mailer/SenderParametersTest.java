@@ -22,7 +22,8 @@ import org.junit.Test;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
-import errors.QwertoMailerException;
+import com.qwertovsky.mailer.errors.QwertoMailerException;
+
 
 public class SenderParametersTest
 {

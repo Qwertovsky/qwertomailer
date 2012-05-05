@@ -24,7 +24,8 @@ import org.apache.velocity.runtime.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import errors.QwertoMailerException;
+import com.qwertovsky.mailer.errors.QwertoMailerException;
+
 
 /**
  * Send messages.<br \>
