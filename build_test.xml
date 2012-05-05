@@ -20,10 +20,6 @@
 	
 	<target name="clean">
 		<delete dir="bin" />
-		<delete>
-			<fileset dir="build" excludes="*.zip" />
-		</delete>
-		<delete dir="doc" />
 	</target>
 	
 	<target name="compile" depends="config,clean">
