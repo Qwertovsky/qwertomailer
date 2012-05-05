@@ -30,8 +30,8 @@
 	
 	<target name="clean">
 		<delete dir="bin" />
-		<delete>
-			<fileset dir="build" excludes="*.zip" />
+		<delete includeemptydirs="true">
+			<fileset dir="build" excludes="*.zip"  includes="**/*" />
 		</delete>
 		<delete dir="doc" />
 	</target>
@@ -90,38 +90,34 @@
 		<copy file="${commons-lang-jar}" todir="build/lib" />
     	<copy file="${slf4j-api-jar}" todir="build/lib" />
     	<copy file="${slf4j-log4j-jar}" todir="build/lib" />
-		<copy todir="build/doc">
-			<fileset dir="doc" />
-		</copy>
-		<copy todir="build/src">
-			<fileset dir="src">
-				<exclude name="**/Mailer.java" />
-			</fileset>
-		</copy>
-		
+						
 		<path id="build.classpath">
 			<fileset dir="build/lib" >
 				<include name="**/*.jar"/>
 			</fileset>
 		</path>
-		<manifestclasspath property="jar-classpath"
-                       jarfile="build/qwertomailer.jar">
-			<classpath refid="build.classpath" />
-		</manifestclasspath>
+		
 		<tstamp>
 			<format property="application.build.date" pattern="yyyy-MM-dd HH:mm:ss" />
 		</tstamp>
+		
 		<exec executable="git" outputproperty="git_ver" logError="true">
 			<arg value="describe" />
 			<arg value="--tags" />
 		</exec>
+		<substring text="${git_ver}" start="1"  property="git_ver" />
 		
     	<exec executable="git" outputproperty="git_date">
     		<arg value="show" />
     		<arg value="-s" />
     		<arg value="--format=&quot;%ci&quot;" />
     	</exec>
-        <jar destfile="build/qwertomailer.jar" filesetmanifest="mergewithoutmain">
+		
+		<manifestclasspath property="jar-classpath"
+                       jarfile="build/qwertomailer-${git_ver}.jar">
+			<classpath refid="build.classpath" />
+		</manifestclasspath>
+        <jar destfile="build/qwertomailer-${git_ver}.jar">
             <manifest>
                 <attribute name="Main-Class" value="com.qwertovsky.mailer.Mailer"/>
                 <attribute name="Class-Path" value=". ${jar-classpath}" />
@@ -131,7 +127,25 @@
             <fileset dir="bin" />
         </jar>
 		
-		<substring text="${git_ver}" start="1"  property="git_ver" />
+		<jar destfile="build/qwertomailer-${git_ver}-src.jar">
+            <manifest>
+                <attribute name="Built-Date" value="${application.build.date}"/> 
+				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
+            </manifest>
+            <fileset dir="src">
+				<exclude name="**/Mailer.java" />
+			</fileset>
+        </jar>
+		
+		<jar destfile="build/qwertomailer-${git_ver}-javadoc.jar">
+            <manifest>
+                <attribute name="Built-Date" value="${application.build.date}"/> 
+				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
+            </manifest>
+            <fileset dir="doc" />
+		</jar>
+		
+		
 		<zip destfile="build/qwertomailer-${git_ver}.zip" 
 			basedir="build"
 			excludes="*.zip"
