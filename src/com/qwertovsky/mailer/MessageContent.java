@@ -29,6 +29,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 import javax.mail.internet.ParseException;
 import javax.swing.text.html.parser.ParserDelegator;
 
@@ -165,6 +166,7 @@ public class MessageContent
 		{
 			ContentType ct = new ContentType(contentType);
 			this.contentType = ct.getBaseType() + "; charset=" + charset;
+			ct = new ContentType(this.contentType);
 		} catch (ParseException pe)
 		{
 			//specify that the problem relates to the ContentType
@@ -208,8 +210,12 @@ public class MessageContent
 	 * Add files to message
 	 * @param attachments list of files
 	 * @throws MessagingException
+	 * @throws FileNotFoundException
+	 * @throws IOException
 	 */
-	public void addAttachments(List<File> attachments) throws MessagingException
+	public void addAttachments(List<File> attachments)
+		throws MessagingException, FileNotFoundException, IOException
+	
 	{
 		if(attachments == null)
 			return;
@@ -254,7 +260,18 @@ public class MessageContent
 				bodyPart = new MimeBodyPart();
 				DataSource source = new FileDataSource(attachment);
 				bodyPart.setDataHandler(new DataHandler(source));
-				bodyPart.setFileName(attachment.getName());
+				String filename = null;
+				try
+				{
+					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
+					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					filename = MimeUtility.encodeText(attachment.getName(),charset, null);
+					bodyPart.setHeader("Content-Type",mimeType + "; name=\"" + filename+"\"");
+					bodyPart.setFileName(filename);
+				} catch (UnsupportedEncodingException e)
+				{
+					filename = attachment.getName();
+				}
 				multipart.addBodyPart(bodyPart);
 			}
 			content = multipart;
@@ -266,8 +283,11 @@ public class MessageContent
 	 * Attach file to message
 	 * @param attachment
 	 * @throws MessagingException
+	 * @throws FileNotFoundException
+	 * @throws IOException
 	 */
-	public void addAttachment(File attachment) throws MessagingException
+	public void addAttachment(File attachment)
+		throws MessagingException, FileNotFoundException, IOException
 	{
 		List<File> attachments = new ArrayList<File>(1);
 		attachments.add(attachment);

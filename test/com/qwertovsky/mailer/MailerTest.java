@@ -5,8 +5,11 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
+import javax.mail.BodyPart;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -122,6 +125,28 @@ public class MailerTest
 		contentType = message.getContentType();
 		if(!contentType.startsWith("multipart/mixed"))
 			fail("incorrect Mailer (-attach)");
+		
+		//--------------------
+		//test attach file with cyrillic name
+		wiser.getMessages().clear();
+		Mailer.main(new String[]{"-smtpHost", "localhost", "-smtpPort", "2500" 
+				,"-subject", "test subject" 
+				,"-body", "<html>test message</html>"
+				,"-contentType", "text/html"
+				,"-attach", "тест.png"
+				,"-emailFrom", "qwertovsky@gmail.com"
+				,"-emailTo", "qwertovsky@gmail.com","-trace"
+				});
+		if(wiser.getMessages().size() != 1)
+			fail("incorrect Mailer");
+		message = wiser.getMessages().get(0).getMimeMessage();
+		contentType = message.getContentType();
+		if(!contentType.startsWith("multipart/mixed"))
+			fail("incorrect Mailer (-attach)");
+		Multipart body = (Multipart) message.getContent();
+		BodyPart attach = body.getBodyPart(1);
+		if(!MimeUtility.decodeText(attach.getFileName()).equalsIgnoreCase("тест.png"))
+			fail("incorrect attach file name");
 		
 		//--------------------
 		wiser.getMessages().clear();
