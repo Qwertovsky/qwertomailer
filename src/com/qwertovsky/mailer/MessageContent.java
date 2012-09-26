@@ -17,6 +17,8 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.activation.MimeType;
+import javax.activation.MimetypesFileTypeMap;
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
