@@ -244,7 +244,7 @@ class Mailer
 		else if(commandLine.hasOption("attachFile"))
 		{
 			String file = commandLine.getOptionValue("attachFile");
-			attachFiles = getAttachFilesFromFile(file);
+			attachFiles = getAttachFilesFromFile(file, charset);
 		}
 		
 		//create sender
@@ -447,14 +447,14 @@ class Mailer
 	}
 
 	//--------------------------------------------
-	private static List<File> getAttachFilesFromFile(String file)
+	private static List<File> getAttachFilesFromFile(String file, String charset)
 	{
 		logger.info("Get attach files from file: " + file);
 		List<File> files = new ArrayList<File>();
 		File attachFiles = new File(file);
 		try
 		{
-			Scanner scanner = new Scanner(attachFiles);
+			Scanner scanner = new Scanner(attachFiles, charset);
             while(scanner.hasNextLine())
             {
                 String attachFile = scanner.nextLine();

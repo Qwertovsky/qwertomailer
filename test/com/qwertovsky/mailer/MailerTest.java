@@ -149,6 +149,31 @@ public class MailerTest
 			fail("incorrect attach file name");
 		
 		//--------------------
+		//test attach files from list
+		wiser.getMessages().clear();
+		Mailer.main(new String[]{"-smtpHost", "localhost", "-smtpPort", "2500" 
+				,"-subject", "test subject" 
+				,"-body", "<html>test message</html>"
+				,"-contentType", "text/html"
+				,"-attachFile", "attach_list"
+				,"-emailFrom", "qwertovsky@gmail.com"
+				,"-emailTo", "qwertovsky@gmail.com","-trace"
+				});
+		if(wiser.getMessages().size() != 1)
+			fail("incorrect Mailer");
+		message = wiser.getMessages().get(0).getMimeMessage();
+		contentType = message.getContentType();
+		if(!contentType.startsWith("multipart/mixed"))
+			fail("incorrect Mailer (-attach)");
+		body = (Multipart) message.getContent();
+		attach = body.getBodyPart(1);
+		if(!MimeUtility.decodeText(attach.getFileName()).equalsIgnoreCase("test.png"))
+			fail("incorrect attach file name");
+		attach = body.getBodyPart(2);
+		if(!MimeUtility.decodeText(attach.getFileName()).equalsIgnoreCase("тест.png"))
+			fail("incorrect attach file name");
+		
+		//--------------------
 		wiser.getMessages().clear();
 		Mailer.main(new String[]{"-smtpHost", "localhost", "-smtpPort", "2500" 
 				,"-subject", "test subject" 
