@@ -317,9 +317,9 @@ class Mailer
 	//--------------------------------------------
 	private static String getMessageTextFromFile(String file, String charset)
 	{
-		logger.info("Get message text from file: " + file);
-		String text = null;
 		File textFile = new File(file);
+		logger.info("Get message text from file: " + textFile.getAbsolutePath());
+		String text = null;
 		try
 		{
 			Scanner scanner = new Scanner(textFile, charset);
@@ -334,7 +334,7 @@ class Mailer
 		} catch (FileNotFoundException e)
 		{
 			System.err.println("Body file not exists: " + file);
-			logger.error("Body file not exists: " + file);
+			logger.error("Body file not exists: " + textFile.getAbsolutePath());
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
@@ -349,9 +349,9 @@ class Mailer
 	//--------------------------------------------
 	private static String getAltTextFromFile(String file, String charset)
 	{
-		logger.info("Get alternative text from file: " + file);
-		String text = null;
 		File textFile = new File(file);
+		logger.info("Get alternative text from file: " + textFile.getAbsolutePath());
+		String text = null;
 		try
 		{
 			Scanner scanner = new Scanner(textFile, charset);
@@ -366,7 +366,7 @@ class Mailer
 		} catch (FileNotFoundException e)
 		{
 			System.err.println("Alttext file not exists: " + file);
-			logger.error("Alttext file not exists: " + file);
+			logger.error("Alttext file not exists: " + textFile.getAbsolutePath());
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
@@ -381,9 +381,9 @@ class Mailer
 	//--------------------------------------------
 	private static String getSubjectFromFile(String file, String charset)
 	{
-		logger.info("Get subject from file: " + file);
-		String subject = null;
 		File subjectFile = new File(file);
+		logger.info("Get subject from file: " + subjectFile.getAbsolutePath());
+		String subject = null;
 		try
 		{
 			Scanner scanner = new Scanner(subjectFile, charset);
@@ -392,13 +392,13 @@ class Mailer
             else
             {
             	System.err.println("Subject file is empty: " + file);
-            	logger.error("Subject file is empty: " + file);
+            	logger.error("Subject file is empty: " + subjectFile.getAbsolutePath());
 				System.exit(1);
             }
 		} catch (FileNotFoundException e)
 		{
 			System.err.println("Subject file not exists: " + file);
-			logger.error("Subject file not exists: " + file);
+			logger.error("Subject file not exists: " + subjectFile.getAbsolutePath());
 			System.exit(1);
 		}catch(IllegalArgumentException e)
 		{
@@ -413,9 +413,9 @@ class Mailer
 	private static String[] getPersonParametersFromFile(List<String[]> personParameters
 			, String file, String charset)
 	{
-		logger.info("Get person parameters from file: " + file);
-		String[] headers = null;
 		File emailsFile = new File(file);
+		logger.info("Get person parameters from file: " + emailsFile.getAbsolutePath());
+		String[] headers = null;
 		CSVReader reader = null;
 		try
 		{
@@ -428,7 +428,7 @@ class Mailer
 		}catch (FileNotFoundException fnfe)
 		{
 			System.err.println("File with emails not exists: " + file);
-			logger.error("File with emails not exists: " + file);
+			logger.error("File with emails not exists: " + emailsFile.getAbsolutePath());
 			System.exit(1);
 		}catch(UnsupportedEncodingException uee)
 		{
@@ -439,7 +439,7 @@ class Mailer
 		catch (IOException ioe)
 		{
 			System.err.println("Error read file with emails: " + file + " (" + ioe.getMessage() + ")");
-			logger.error("Error read file with emails: " + file + " (" + ioe.getMessage() + ")");
+			logger.error("Error read file with emails: " + emailsFile.getAbsolutePath() + " (" + ioe.getMessage() + ")");
 			System.exit(1);
 		}
 		
@@ -449,9 +449,9 @@ class Mailer
 	//--------------------------------------------
 	private static List<File> getAttachFilesFromFile(String file, String charset)
 	{
-		logger.info("Get attach files from file: " + file);
-		List<File> files = new ArrayList<File>();
 		File attachFiles = new File(file);
+		logger.info("Get attach files from file: " + attachFiles.getAbsolutePath());
+		List<File> files = new ArrayList<File>();
 		try
 		{
 			Scanner scanner = new Scanner(attachFiles, charset);
@@ -463,7 +463,7 @@ class Mailer
 		} catch (FileNotFoundException e)
 		{
 			System.err.println("File with attachments not exists: " + file);
-			logger.error("File with attachments not exists: " + file);
+			logger.error("File with attachments not exists: " + attachFiles.getAbsolutePath());
 			System.exit(1);
 		}
             
