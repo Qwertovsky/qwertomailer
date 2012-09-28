@@ -42,6 +42,7 @@ public class Sender
 	private boolean traceMessages = false;
 	private List<String> badEmails;
 	private List<String[]> badParameters;
+	private List<Message> errorSendMessages;
 	
 	final Logger logger = LoggerFactory.getLogger(Sender.class);
 
@@ -348,6 +349,7 @@ public class Sender
 						+ recipientsArray[0].getAddress() + "("+e.getMessage()+")");
 				throw e;
 			}
+			message.setParameters(parameters);
 			messages.add(message);
 		}
 		
@@ -357,6 +359,7 @@ public class Sender
 		
 		//send messages
 		logger.info("Start sending");
+		errorSendMessages = new ArrayList<Message>();
 		for(Message message:messages)
 		{
 			sendMessage(message);
@@ -443,7 +446,7 @@ public class Sender
 			{
 				sb.append("error get recipients");
 			}
-						
+			errorSendMessages.add(message);			
 			logger.error("Error ("+ me.getMessage() +") send message to: " + sb.toString());
 		}
 		
@@ -689,5 +692,15 @@ public class Sender
 	public List<String[]> getBadParameters()
 	{
 		return badParameters;
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Get not send messages that were in the last send operation.
+	 * @return not send messages
+	 */
+	public List<Message> getErrorSendMessages()
+	{
+		return errorSendMessages;
 	}
 }

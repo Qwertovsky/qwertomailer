@@ -10,6 +10,8 @@ import javax.mail.internet.MimeMessage;
  */
 class Message extends MimeMessage
 {
+	private String[] parameters;
+	
 	public Message(Session session)
 	{
 		super(session);
@@ -25,5 +27,16 @@ class Message extends MimeMessage
 		if(host != null)
 			messageId = messageId + "@" + host;
 		setHeader("Message-ID", "<"	+ messageId	+ ">");
+	}
+	
+	//--------------------------------------------
+	public void setParameters(String[] parameters)
+	{
+		this.parameters = parameters;
+	}
+
+	public String[] getParameters()
+	{
+		return parameters;
 	}
 }

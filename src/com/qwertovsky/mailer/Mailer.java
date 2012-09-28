@@ -13,6 +13,7 @@ import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import javax.mail.Address;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -307,6 +308,50 @@ class Mailer
 			{
 				logger.error("Error",e);
 				System.err.println("Error");
+			}
+		}
+		
+		//print not sent messages
+		List<Message> notSentMessages = sender.getErrorSendMessages();
+		if(!notSentMessages.isEmpty())
+		{
+			System.err.println("Some messages not been sent");
+			logger.warn("Some messages not been sent");
+			for(Message notSentMessage:notSentMessages)
+			{
+				StringBuilder sb = new StringBuilder();
+				Address[] recipients = null;
+				try
+				{
+					recipients = notSentMessage.getAllRecipients();
+					int i=0;
+					for(; i < 3 && i < recipients.length; i++)
+					{
+						if(sb.length() > 0)
+							sb.append(", ");
+						sb.append(((InternetAddress)recipients[i]).getAddress());
+					}
+					if(i < recipients.length)
+						sb.append("...");
+				} catch (Exception e1)
+				{
+					sb.append("error get recipients");
+				}
+				//append parameters
+				String[] parameters = notSentMessage.getParameters();
+				if(parameters != null)
+				{
+					sb.append(" [");
+					for(int i = 0; i < parameters.length; i++)
+					{
+						String parameter = parameters[i];
+						sb.append(parameter);
+						if(i+1 < parameters.length)
+							sb.append(", ");
+					}
+					sb.append("]");
+				}
+				logger.warn(sb.toString());
 			}
 		}
 		logger.info("Program stoped");
