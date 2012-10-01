@@ -4,7 +4,9 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.mail.BodyPart;
 import javax.mail.Multipart;
@@ -1002,7 +1004,7 @@ public class MessageContentTest
 				, new String[]{"message parameter","subject parameter"});
 			String html = (String) message.getContent();
 			if(!message.getContentType().startsWith("text/html"))
-					fail("incorrect setParameters");
+				fail("incorrect setParameters");
 			String subject = message.getSubject();
 			if(!html.contains("<br />message parameter"))
 				fail("not correct message");
@@ -1028,7 +1030,7 @@ public class MessageContentTest
 				, new String[]{"message parameter"});
 			String html = (String) message.getContent();
 			if(!message.getContentType().startsWith("text/html"))
-					fail("incorrect setParameters");
+				fail("incorrect setParameters");
 			String subject = message.getSubject();
 			if(!html.contains("<br />message parameter"))
 				fail("not correct message");
@@ -1054,12 +1056,13 @@ public class MessageContentTest
 				, new String[]{"message parameter",null});
 			String html = (String) message.getContent();
 			if(!message.getContentType().startsWith("text/html"))
-					fail("incorrect setParameters");
+				fail("incorrect setParameters");
 			String subject = message.getSubject();
 			if(!html.contains("<br />message parameter"))
 				fail("not correct message");
 			//$subject must be replaced to empty string
-			if(subject.contains("$subject"))
+			System.out.println(subject);
+			if(subject.contains("$subject") || subject.contains("ull"))
 				fail("not correct subject");
 		} catch (QwertoMailerException qme)
 		{
@@ -1082,7 +1085,7 @@ public class MessageContentTest
 				, new String[]{"message parameter","subject parameter"});
 			String html = (String) message.getContent();
 			if(!message.getContentType().startsWith("text/html"))
-					fail("incorrect setParameters");
+				fail("incorrect setParameters");
 			String subject = message.getSubject();
 			if(!html.contains("<br />message parameter"))
 				fail("not correct message");
@@ -1111,7 +1114,7 @@ public class MessageContentTest
 				BodyPart textPart = ((Multipart)alternative).getBodyPart(0);
 				BodyPart htmlPart = ((Multipart)alternative).getBodyPart(1);
 				if(!htmlPart.getContentType().startsWith("text/html"))
-						fail("incorrect setParameters");
+					fail("incorrect setParameters");
 				String text = (String) textPart.getContent();
 				String html = (String) htmlPart.getContent();
 				String subject = message.getSubject();
@@ -1377,6 +1380,62 @@ public class MessageContentTest
 			else
 				fail("must be mixed");
 		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+	}
+	
+	//--------------------------------------------
+	@Test
+	public void testSetMapParameters() throws Exception
+	{
+		/*
+		 * -html (content)
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test.eml"));
+			Map<String, String> parameters = new HashMap<String, String>();
+			parameters.put("message","message parameter");
+			parameters.put("subject","subject parameter");
+			message.setParameters(parameters);
+			String html = (String) message.getContent();
+			if(!message.getContentType().startsWith("text/html"))
+					fail("incorrect setParameters");
+			String subject = message.getSubject();
+			if(!html.contains("<br />message parameter"))
+				fail("not correct message");
+			if(!subject.contains("subject parameter"))
+				fail("not correct subject");
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("incorrect setParameters");
+		}
+		
+		//----------------------------------------
+		/*
+		 * error
+		 */
+		try
+		{
+			MessageContent message = new MessageContent(new File("test.eml"));
+			Map<String, String> parameters = new HashMap<String, String>();
+			message.setParameters(parameters);
+			String html = (String) message.getContent();
+			if(!message.getContentType().startsWith("text/html"))
+				fail("incorrect setParameters");
+			String subject = message.getSubject();
+			if(!html.contains("<br />message parameter"))
+				fail("not correct message");
+			if(!subject.contains("subject parameter"))
+				fail("not correct subject");
+		} catch (QwertoMailerException qme)
+		{
+			//pass
+		}
+		catch(Exception e)
 		{
 			e.printStackTrace();
 			fail("incorrect setParameters");

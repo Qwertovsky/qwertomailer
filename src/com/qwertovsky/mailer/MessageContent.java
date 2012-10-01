@@ -11,8 +11,11 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -987,14 +990,50 @@ public class MessageContent
 		if(parameters.length < headers.length)
 			throw new QwertoMailerException("Parameters must be not less then headers");
 		
-		VelocityContext context = new VelocityContext();
-		for(int i=0; i < headers.length; i++)
-		{	
+		//from arrays to map
+		Map<String, String> parameterMap = new HashMap<String, String>(headers.length);
+		for(int i = 0; i < headers.length; i++)
+		{
 			if(headers[i] == null || headers[i].length() == 0)
 				continue;
-			if(parameters[i] == null)
-				parameters[i] = "";
-			context.put(headers[i], parameters[i]);
+			parameterMap.put(headers[i], parameters[i]);
+		}
+		
+		setParameters(parameterMap);
+		
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Put inline parameters in message
+	 * <br /> If header specified, but relevant parameter is null
+	 *  - $header will be replaced to empty string
+	 * @param map of parameters
+	 * @throws IOException
+	 * @throws MessagingException
+	 * @throws org.apache.velocity.runtime.parser.ParseException
+	 * @throws QwertoMailerException Parameters can't be null or have length equal to 0
+	 * 
+	 */
+	public void setParameters(Map<String, String> parameters)
+		throws IOException, MessagingException
+		, org.apache.velocity.runtime.parser.ParseException
+		, QwertoMailerException
+	{
+		if(parameters == null || parameters.size() == 0)
+			throw new QwertoMailerException("Parameters can't be null or have length equal to 0");
+		
+		Set<String> headers = parameters.keySet();
+		
+		VelocityContext context = new VelocityContext();
+		for(String header:headers)
+		{	
+			if(header == null || header.length() == 0)
+				continue;
+			String parameter = parameters.get(header);
+			if(parameter == null)
+				parameter = "";
+			context.put(header, parameter);
 		}
 		
 		if(content instanceof Multipart
