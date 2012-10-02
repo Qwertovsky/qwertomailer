@@ -7,10 +7,11 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
@@ -37,7 +38,7 @@ import com.qwertovsky.mailer.errors.QwertoMailerException;
 @RunWith(value = Parameterized.class)
 public class SenderTest
 {	
-	List<InternetAddress> emailsTo;
+	Set<InternetAddress> emailsTo;
 	File emlFile = null;
 	String smtpHost;
 	int smtpPort;
@@ -47,8 +48,8 @@ public class SenderTest
 	String hostname;
 	
 	static Wiser wiser;
-	static ArrayList<Address> validTo;
-	static ArrayList<Address> invalidTo;
+	static Set<Address> validTo;
+	static Set<Address> invalidTo;
 	
 	public static Logger loggerOrg = Logger.getLogger("org");
 	public static Logger loggerCom = Logger.getLogger("com");
@@ -56,10 +57,10 @@ public class SenderTest
 	@Parameters
 	public static Collection<Object[]> parameters() throws AddressException, UnknownHostException, IOException
 	{
-		validTo = new ArrayList<Address>();
+		validTo = new HashSet<Address>();
 		validTo.add(new InternetAddress("address1@from"));
 		validTo.add(new InternetAddress("address2"));
-		invalidTo = new ArrayList<Address>();
+		invalidTo = new HashSet<Address>();
 		invalidTo.add(new InternetAddress("address1"));
 		invalidTo.add(new InternetAddress("address2"));
 		
@@ -85,7 +86,7 @@ public class SenderTest
 				}); 
 	}
 	
-	public SenderTest(List<InternetAddress> emailsTo
+	public SenderTest(Set<InternetAddress> emailsTo
 			, String host, int port, String user, String password
 			,  String method, String hostname)
 	{

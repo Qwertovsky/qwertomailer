@@ -1008,7 +1008,7 @@ public class MessageContent
 	 * Put inline parameters in message
 	 * <br /> If header specified, but relevant parameter is null
 	 *  - $header will be replaced to empty string
-	 * @param map of parameters
+	 * @param parameters map of parameters
 	 * @throws IOException
 	 * @throws MessagingException
 	 * @throws org.apache.velocity.runtime.parser.ParseException

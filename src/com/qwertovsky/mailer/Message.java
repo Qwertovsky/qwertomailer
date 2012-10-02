@@ -1,5 +1,8 @@
 package com.qwertovsky.mailer;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
@@ -10,8 +13,8 @@ import javax.mail.internet.MimeMessage;
  */
 class Message extends MimeMessage
 {
-	private String[] parameters;
-	
+	private Map<String, String> parameters;
+		
 	public Message(Session session)
 	{
 		super(session);
@@ -30,12 +33,23 @@ class Message extends MimeMessage
 	}
 	
 	//--------------------------------------------
-	public void setParameters(String[] parameters)
+	public void setParameters(Map<String, String> parametersMap)
 	{
-		this.parameters = parameters;
+		parameters = parametersMap;
 	}
-
-	public String[] getParameters()
+	
+	//--------------------------------------------
+	public void setParameters(String[] headers, String[] parametersArray)
+	{
+		parameters = new HashMap<String, String>();
+		for(int i = 0; i < headers.length; i++)
+		{
+			parameters.put(headers[i], parametersArray[i]);
+		}
+	}
+	
+	//--------------------------------------------
+	public Map<String, String> getParameters()
 	{
 		return parameters;
 	}

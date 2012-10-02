@@ -8,8 +8,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -108,7 +111,7 @@ class Mailer
 		String subject = null;
 		String emailFrom = null;
 		String personFrom = null;
-		ArrayList<InternetAddress> emailsTo = new ArrayList<InternetAddress>();
+		Set<InternetAddress> emailsTo = new HashSet<InternetAddress>();
 		ArrayList<String[]> personParameters = new ArrayList<String[]>();
 		String[] personParamHeaders = null;
 		
@@ -338,19 +341,23 @@ class Mailer
 					sb.append("error get recipients");
 				}
 				//append parameters
-				String[] parameters = notSentMessage.getParameters();
-				if(parameters != null)
+				StringBuilder sbParameters = new StringBuilder();
+				Map<String, String> parametersForMessage = notSentMessage.getParameters();
+				if(parametersForMessage != null)
 				{
-					sb.append(" [");
-					for(int i = 0; i < parameters.length; i++)
+					
+					sbParameters.append(" [");
+					Set<String> keys = parametersForMessage.keySet();
+					for(String key:keys)
 					{
-						String parameter = parameters[i];
-						sb.append(parameter);
-						if(i+1 < parameters.length)
-							sb.append(", ");
+						if(sbParameters.length() > 2)
+							sbParameters.append(", ");
+						String parameter = parametersForMessage.get(key);
+						sbParameters.append(parameter);
 					}
-					sb.append("]");
+					sbParameters.append("]");
 				}
+				sb.append(sbParameters.toString());
 				logger.warn(sb.toString());
 			}
 		}
