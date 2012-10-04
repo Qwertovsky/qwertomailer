@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -43,7 +45,6 @@ public class Sender
 	private Session session;
 	private boolean traceMessages = false;
 	private List<String> badEmails;
-	private List<String[]> badParameters;
 	private List<Map<String, String>> badParametersMap;
 	private List<Message> errorSendMessages;
 	
@@ -262,114 +263,60 @@ public class Sender
 			List<String[]> personParameters, boolean haltOnFailure)
 	throws QwertoMailerException, IOException, MessagingException, ParseException
 	{
-		if(messageContent == null)
-			throw new QwertoMailerException("Message is null");
-		String charset = messageContent.getCharset();
-		Address from = messageContent.getAddressFrom();
-		if(from == null)
-			throw new QwertoMailerException("From email has not been specified");
-	
-		if(personParameters == null || personParameters.isEmpty())
-		{
-			throw new QwertoMailerException("Recipients list is empty");
-		}
-		
-		mailProp.put("mail.mime.charset", charset);
-		Velocity.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
-	      "org.apache.velocity.slf4j.Slf4jLogChute");
-		Velocity.setProperty("runtime.log.logsystem.slf4j.name",
-			"com.qwertovsky.mailer");
-		Velocity.init();
-		
-		
-		badEmails = new ArrayList<String>();
-		badParameters = new ArrayList<String[]>();
-		
-		//get indexes of emails (email%) and attachments (attach%)
-		int[] emailIndexes = getEmailIndexes(personParamHeaders);
-		int[] attachIndexes = getAttachIndexes(personParamHeaders);
-		
-		//recipients must be
-		if(emailIndexes.length == 0)
-			throw new QwertoMailerException("Emails not present in file");
-		
-		//create messages
-		ArrayList<Message> messages = new ArrayList<Message>();
-		
-		logger.info("Create personal messages");
-		
+		//create list of parameters maps
+		int listSize = personParameters.size();
+		int mapSize = personParamHeaders.length;
+		List<Map<String, String>> parametersMapList = new ArrayList<Map<String, String>>(listSize);
 		for(String[] parameters:personParameters)
 		{
-			//get emails
-			InternetAddress[] recipientsArray = getRecipientsList(emailIndexes, parameters);
-			if(recipientsArray == null)
+			Map<String, String> parametersMap = new HashMap<String,String>(mapSize);
+			for(int i=0; i<personParamHeaders.length; i++)
 			{
-				StringBuilder sb = new StringBuilder();
-				for(int i = 0; i < parameters.length; i++)
-				{
-					sb.append("\"" + parameters[i] + "\"");
-					if((i + 1) < parameters.length)
-						sb.append(", ");
-				}
-				logger.error("Recipients list is empty: " + sb.toString());
-				badParameters.add(parameters);
-				continue;
+				String parameterValue = null;
+				if(i < parameters.length)
+					parameterValue = parameters[i];
+				String header = personParamHeaders[i];
+				if(parametersMap.containsKey(header))
+	    		{
+					int index = 0;
+					do
+					{
+						index++;
+					}
+					while(parametersMap.containsKey(header + "_" + index));
+					header = header + "_" + index;
+			    }
+				parametersMap.put(header, parameterValue);
 			}
-			
-			//get attachments
-			List<File> attachments = getAttachments(attachIndexes, parameters);
-			
-			//create individual message content
-			MessageContent content = new MessageContent(messageContent);
-			content.addAttachments(attachments);
-			try
-			{
-				content.setParameters(personParamHeaders, parameters);
-			} catch (QwertoMailerException qme)
-			{
-				StringBuilder sb = new StringBuilder();
-				sb.append("Message has not been created (" + qme.getMessage() + ") for: ");
-				for(int i = 0; i < parameters.length; i++)
-				{
-					sb.append("\"" + parameters[i] + "\"");
-					if((i + 1) < parameters.length)
-						sb.append(", ");
-				}
-				logger.error(sb.toString());
-				badParameters.add(parameters);
-				continue;
-			}
-			
-			
-			Message message = new Message(session);
-			try
-			{
-				makeMessage(message, content);
-				message.setRecipients(RecipientType.TO, recipientsArray);
-			} catch (MessagingException e)
-			{
-				logger.error("Message has not been created for "
-						+ recipientsArray[0].getAddress() + "("+e.getMessage()+")");
-				throw e;
-			}
-			
-			message.setParameters(personParamHeaders, parameters);
-			messages.add(message);
+			parametersMapList.add(parametersMap);
 		}
 		
-		//halt on failure
-		if(haltOnFailure && (!badEmails.isEmpty() || !badParameters.isEmpty()))
-			throw new QwertoMailerException("Halt on failure");
-		
-		//send messages
-		logger.info("Start sending");
-		errorSendMessages = new ArrayList<Message>();
-		for(Message message:messages)
-		{
-			sendMessage(message);
-		}
-		logger.info("End sending");
-		
+		//invoke #send(MessageContent, List)
+		send(messageContent, parametersMapList, haltOnFailure);
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Send messages. One array of parameters - one message.
+	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
+	 * , throw {@link QwertoMailerException}
+	 * @param messageContent message content
+	 * @param personParameters list of parameters map
+	 * @throws QwertoMailerException Message is null
+	 * , From email has not been specified
+	 * , Recipients list is empty
+	 * , Emails not present in file
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws MessagingException
+	 * @see #send(MessageContent, List, boolean) 
+	 * 
+	 */
+	public void send(MessageContent messageContent, List<Map<String, String>> personParameters)
+	throws QwertoMailerException, IOException, MessagingException, ParseException
+	{
+		send(messageContent, personParameters, false);
 	}
 	
 	//--------------------------------------------
@@ -389,7 +336,7 @@ public class Sender
 	 * @throws ParseException 
 	 * @throws IOException 
 	 * @throws MessagingException
-	 * @see #send(MessageContent, String[], List) 
+	 * @see #send(MessageContent, List) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, List<Map<String, String>> personParameters
@@ -416,7 +363,7 @@ public class Sender
 		Velocity.init();
 		
 		badEmails = new ArrayList<String>();
-		badParameters = new ArrayList<String[]>();
+		badParametersMap = new ArrayList<Map<String, String>>(); 
 		
 		//get indexes of emails (email%) and attachments (attach%)
 //		int[] emailIndexes = getEmailIndexes(personParamHeaders);
@@ -434,9 +381,9 @@ public class Sender
 		for(Map<String, String> parameters:personParameters)
 		{
 			//get emails
-			InternetAddress[] recipientsArray = getRecipientsList(parameters);
+			Set<InternetAddress> recipients = getRecipientsList(parameters);
 			//error if list is empty
-			if(recipientsArray == null)
+			if(recipients == null)
 			{
 				StringBuilder sb = new StringBuilder();
 				Set<String> keys = parameters.keySet();
@@ -456,7 +403,8 @@ public class Sender
 			
 			//create individual message content
 			MessageContent content = new MessageContent(messageContent);
-			content.addAttachments(attachments);
+			if(attachments != null && !attachments.isEmpty())
+				content.addAttachments(attachments);
 			try
 			{
 				content.setParameters(parameters);
@@ -481,11 +429,11 @@ public class Sender
 			try
 			{
 				makeMessage(message, content);
-				message.setRecipients(RecipientType.TO, recipientsArray);
+				message.setRecipients(RecipientType.TO, recipients.toArray(new InternetAddress[0]));
 			} catch (MessagingException e)
 			{
 				logger.error("Message has not been created for "
-						+ recipientsArray[0].getAddress() + "("+e.getMessage()+")");
+						+ recipients.toArray() + "("+e.getMessage()+")");
 				throw e;
 			}
 			message.setParameters(parameters);
@@ -493,7 +441,7 @@ public class Sender
 		}
 		
 		//halt on failure
-		if(haltOnFailure && (!badEmails.isEmpty() || !badParameters.isEmpty()))
+		if(haltOnFailure && (!badEmails.isEmpty() || !badParametersMap.isEmpty()))
 			throw new QwertoMailerException("Halt on failure");
 		
 		//send messages
@@ -593,40 +541,6 @@ public class Sender
 
 	//--------------------------------------------
 	/**
-	 * Get indexes of emails in parameters array
-	 * <br />Email headers start with "email"
-	 * @param personParamHeaders headers of parameters
-	 * @return indexes array
-	 */
-	protected int[] getEmailIndexes(String[] personParamHeaders)
-	{
-		if(personParamHeaders == null || personParamHeaders.length == 0)
-			return null;
-		int[] emailIndexes = new int[0];
-		for(int i=0; i < personParamHeaders.length; i++)
-		{
-			String header = personParamHeaders[i];
-			if(header == null)
-				continue;
-			if(header.toLowerCase().trim().startsWith("email"))
-			{
-				try
-				{
-					int[] temp = emailIndexes.clone();
-					emailIndexes = new int[emailIndexes.length + 1];
-					System.arraycopy(temp, 0, emailIndexes, 0, temp.length);
-					emailIndexes[emailIndexes.length-1] = i;
-				} catch (Exception e)
-				{
-					//nothing
-				}
-			}
-		}
-		return emailIndexes;
-	}
-	
-	//--------------------------------------------
-	/**
 	 * Get indexes of attachments in parameters array
 	 * <br />Attachment headers start with "attach"
 	 * @param personParamHeaders headers of parameters
@@ -659,64 +573,6 @@ public class Sender
 		return attachIndexes;
 	}
 
-	//--------------------------------------------
-	/**
-	 * Get attachments list
-	 * @param attachIndexes array of indexes in parameters array
-	 * @param parameters array of parameters
-	 * @return attachments list
-	 */
-	protected List<File> getAttachments(int[] attachIndexes, String[] parameters)
-	{
-		if(attachIndexes == null || attachIndexes.length == 0
-				|| parameters == null || parameters.length == 0)
-			return null;
-		
-		List<File> attachments = new ArrayList<File>(attachIndexes.length);
-		for(int index:attachIndexes)
-		{
-			if(parameters.length <= index)
-			{
-				StringBuilder sb = new StringBuilder();
-				for(int i = 0; i < parameters.length; i++)
-				{
-					sb.append("\"" + parameters[i] + "\"");
-					if((i + 1) < parameters.length)
-						sb.append(", ");
-				}
-				logger.error("Attachment not present in column " + index + " (first is 0):"
-						 + sb.toString());
-				badParameters.add(parameters);
-				return attachments;
-			}
-			
-			try
-			{
-				String fileString = parameters[index];
-				if(fileString == null)
-					continue;
-				fileString = fileString.trim();
-				if(fileString.length() == 0)
-					continue;
-				File file = new File(fileString);
-				if(file.exists())
-					attachments.add(file);
-				else
-				{
-					logger.error("File " + fileString + " not exists");
-					if(badParameters != null)
-						badParameters.add(parameters);
-				}
-			} catch (Exception e)
-			{
-				logger.error("Error on get attachments: " + e.getMessage());
-				if(badParameters != null)
-					badParameters.add(parameters);
-			}
-		}
-		return attachments;
-	}
-	
 	//--------------------------------------------
 	/**
 	 * Get attachments list
@@ -765,78 +621,14 @@ public class Sender
 	//--------------------------------------------
 	/**
 	 * Get recipient list
-	 * @param emailIndexes array of indexes (index of email-parameter in parameters)
 	 * @param parameters array of parameters
 	 * @return recipients addresses list
 	 */
-	protected InternetAddress[] getRecipientsList(int[] emailIndexes,
-			String[] parameters)
-	{
-		if(emailIndexes == null || emailIndexes.length == 0
-				|| parameters == null || parameters.length == 0)
-			return null;
-		List<InternetAddress> recipientsList = new ArrayList<InternetAddress>(emailIndexes.length);
-		for(int index:emailIndexes)
-		{
-			if(parameters.length <= index)
-			{
-				StringBuilder sb = new StringBuilder();
-				for(int i = 0; i < parameters.length; i++)
-				{
-					sb.append("\"" + parameters[i] + "\"");
-					if((i + 1) < parameters.length)
-						sb.append(", ");
-				}
-				logger.error("Email not present in column " + index + " (first is 0):"
-						 + sb.toString());
-				if(badParameters != null)
-					badParameters.add(parameters);
-				continue;
-			}
-			String emailString = parameters[index];
-			if(emailString == null)
-				continue;
-			emailString = emailString.trim();
-			if(emailString.length() == 0)
-				continue;
-			String[] emails = emailString.split(",| ");
-			for(String email:emails)
-			{
-				if(email == null || email.length() == 0)
-					continue;
-				try
-				{
-					InternetAddress address = new InternetAddress(email);
-					address.validate();
-					recipientsList.add(address);
-				}catch(AddressException ae)
-				{
-					logger.warn("Email " + email + " is incorrect: " + ae.getMessage());
-					if(badEmails != null)
-						badEmails.add(email);
-				}
-			}
-		}
-		if(recipientsList == null || recipientsList.isEmpty())
-		{
-			return null;
-		}
-		return recipientsList.toArray(new InternetAddress[0]);
-		
-
-	}
-	
-	//--------------------------------------------
-	/**
-	 * Get recipient list
-	 * @param parameters array of parameters
-	 * @return recipients addresses list
-	 */
-	protected InternetAddress[] getRecipientsList(Map<String, String> parameters)
+	protected Set<InternetAddress> getRecipientsList(Map<String, String> parameters)
 	{
 		if(parameters == null || parameters.size() == 0)
 			return null;
-		List<InternetAddress> recipientsList = new ArrayList<InternetAddress>();
+		Set<InternetAddress> recipientsList = new HashSet<InternetAddress>();
 		Set<String> keys = parameters.keySet();
 		for(String header:keys)
 		{
@@ -871,7 +663,7 @@ public class Sender
 		{
 			return null;
 		}
-		return recipientsList.toArray(new InternetAddress[0]);
+		return recipientsList;
 	}
 
 	//-----------------------------------------------
@@ -921,9 +713,9 @@ public class Sender
 	 * Get bad parameters of recipients, that were in the last send operation.
 	 * @return bad parameters
 	 */
-	public List<String[]> getBadParameters()
+	public List<Map<String, String>> getBadParameters()
 	{
-		return badParameters;
+		return badParametersMap;
 	}
 	
 	//--------------------------------------------
