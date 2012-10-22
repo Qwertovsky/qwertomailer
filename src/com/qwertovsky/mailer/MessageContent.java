@@ -114,10 +114,38 @@ public class MessageContent
 		, MessagingException
 		, IOException
 	{
-		Session mailSession = Session.getDefaultInstance(new Properties(), null);
 		InputStream isEML = null;
 		isEML = new FileInputStream(EMLFile);
-		Message message = new MimeMessage(mailSession, isEML);
+		getMessageFromStream(isEML);
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Create message from input stream of EML file.<br />
+	 * Only content, content type and subject will be get from file.<br />
+	 * Not allow create message with no subject or with empty subject. 
+	 * @param EMLFileIStream input stream contains message in EML file format
+	 * @throws IOException 
+	 * @throws MessagingException
+	 * @throws NullPointerException EML file is null
+	 * @throws QwertoMailerException Subject can't be null or empty
+	 */
+	public MessageContent(InputStream EMLFileIStream)
+		throws QwertoMailerException
+		, MessagingException
+		, IOException
+	{
+		getMessageFromStream(EMLFileIStream);
+	}
+	
+	//--------------------------------------------
+	private void getMessageFromStream(InputStream EMLFileIStream)
+	throws QwertoMailerException
+	, MessagingException
+	, IOException
+	{
+		Session mailSession = Session.getDefaultInstance(new Properties(), null);
+		Message message = new MimeMessage(mailSession, EMLFileIStream);
 		content = message.getContent();
 		contentType = message.getContentType();
 		subject = message.getSubject();
@@ -128,7 +156,6 @@ public class MessageContent
 		charset = ct.getParameter("charset");
 		if(charset == null)
 			charset = "UTF-8";
-		
 	}
 	
 	//--------------------------------------------
