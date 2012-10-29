@@ -198,7 +198,7 @@ public class MailerTest
 				,"-emailFrom", "qwertovsky@gmail.com"
 				,"-emailTo", "qwertovsky@gmail.com,qwertovsky@gmail.com"
 				});
-		if(wiser.getMessages().size() != 2)
+		if(wiser.getMessages().size() != 1)
 			fail("incorrect Mailer");
 		
 		
