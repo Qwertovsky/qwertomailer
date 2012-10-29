@@ -122,6 +122,7 @@ class Mailer
 		}catch(ParseException pe)
 		{
 			logger.error(pe.getMessage());
+			System.err.println(pe.getMessage());
 			HelpFormatter helpFormatter = new HelpFormatter();
 			helpFormatter.printHelp("java -jar qwertomailer.jar", options, true);
 			return;
@@ -167,9 +168,9 @@ class Mailer
 			String file = commandLine.getOptionValue("bodyFile");
 			text = getMessageTextFromFile(file, charset);
 		} 
-		else if (commandLine.hasOption("bodyEML"))
+		else if (commandLine.hasOption("EMLFile"))
 		{
-			emlFile = new File(commandLine.getOptionValue("bodyEML"));
+			emlFile = new File(commandLine.getOptionValue("EMLFile"));
 			if(!emlFile.exists())
 			{
 				logger.error("EML file not exists");
@@ -179,13 +180,31 @@ class Mailer
 		}
 		
 		contentType = commandLine.getOptionValue("contentType", "text/plain");
-					
-		if(commandLine.hasOption("subject"))
-			subject = commandLine.getOptionValue("subject");
-		else if(commandLine.hasOption("subjectFile"))
+		
+		if (!commandLine.hasOption("EMLFile"))
 		{
-			String file = commandLine.getOptionValue("subjectFile");
-			subject = getSubjectFromFile(file, charset);
+			if(commandLine.hasOption("subject"))
+				subject = commandLine.getOptionValue("subject");
+			else if(commandLine.hasOption("subjectFile"))
+			{
+				String file = commandLine.getOptionValue("subjectFile");
+				subject = getSubjectFromFile(file, charset);
+			}
+			if(subject == null)
+			{
+				logger.error("Missing required option: [-subjectFile file with subject line, -subject subject]");
+				System.err.println("Missing required option: [-subjectFile file with subject line, -subject subject]");
+				System.exit(1);
+			}
+		}
+		else
+		{
+			if(commandLine.hasOption("subject") || commandLine.hasOption("subjectFile"))
+			{
+				logger.warn("The option 'subject' was specified but will be used subject from EML file");
+				System.err.println("The option 'subject' was specified but will be used subject from EML file");
+				System.exit(1);
+			}
 		}
 		
 		emailFrom = commandLine.getOptionValue("emailFrom");
@@ -286,7 +305,7 @@ class Mailer
 			logger.error(e.getMessage());
 			System.err.println(e.getMessage());
 			logger.info("Program stoped");
-			return;
+			System.exit(1);
 		}
 		
 		//send message
@@ -312,6 +331,8 @@ class Mailer
 				logger.error("Error",e);
 				System.err.println("Error");
 			}
+			logger.info("Program stoped");
+			System.exit(1);
 		}
 		
 		//print not sent messages
@@ -569,7 +590,7 @@ class Mailer
 		Option oEMLFile = OptionBuilder.withArgName("file")
 				.withDescription("get content from EML file")
 				.hasArg()
-				.create("bodyEML");
+				.create("EMLFile");
 		OptionGroup ogMessage = new OptionGroup();
 		ogMessage.setRequired(true);
 		ogMessage.addOption(oMessage);
@@ -590,7 +611,7 @@ class Mailer
 				.hasArg()
 				.create("subjectFile");
 		OptionGroup ogSubject = new OptionGroup();
-		ogSubject.setRequired(true);
+		ogSubject.setRequired(false);
 		ogSubject.addOption(oSubject);
 		ogSubject.addOption(oSubjectFile);
 		
