@@ -208,6 +208,7 @@ public class Sender
 		
 		//send messages
 		logger.info("Start sending: " + messages.size() + " messages");
+		errorSendMessages = new ArrayList<Message>();
 		for(Message message:messages)
 		{
 			sendMessage(message);
@@ -364,14 +365,6 @@ public class Sender
 		
 		badEmails = new ArrayList<String>();
 		badParametersMap = new ArrayList<Map<String, String>>(); 
-		
-		//get indexes of emails (email%) and attachments (attach%)
-//		int[] emailIndexes = getEmailIndexes(personParamHeaders);
-//		int[] attachIndexes = getAttachIndexes(personParamHeaders);
-		
-		//recipients must be
-//		if(emailIndexes.length == 0)
-//			throw new QwertoMailerException("Emails not present in file");
 		
 		//create messages
 		ArrayList<Message> messages = new ArrayList<Message>();
