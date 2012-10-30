@@ -341,7 +341,7 @@ class Mailer
 		
 		//print bad emails
 		List<String> badEmails = sender.getBadEmails();
-		if(!badEmails.isEmpty())
+		if(badEmails != null && !badEmails.isEmpty())
 		{
 			System.err.println("Some emails is wrong");
 			logger.warn("----");
@@ -354,7 +354,7 @@ class Mailer
 		
 		//print bad emails
 		List<Map<String, String>> badParameters = sender.getBadParameters();
-		if(!badParameters.isEmpty())
+		if(badParameters != null && !badParameters.isEmpty())
 		{
 			System.err.println("Some parameters is wrong");
 			logger.warn("----");
