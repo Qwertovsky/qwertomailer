@@ -111,6 +111,7 @@ class Mailer
 		String subject = null;
 		String emailFrom = null;
 		String personFrom = null;
+		boolean haltOnFailure = false;
 		Set<InternetAddress> emailsTo = new HashSet<InternetAddress>();
 		ArrayList<String[]> personParameters = new ArrayList<String[]>();
 		String[] personParamHeaders = null;
@@ -132,6 +133,11 @@ class Mailer
 		{
 			logger.setLevel(Level.TRACE);
 		}
+		if(commandLine.hasOption("haltOnFailure"))
+		{
+			haltOnFailure = true;
+		}
+		
 		smtpHost = commandLine.getOptionValue("smtpHost");
 		if(commandLine.hasOption("smtpPort"))
 		{
@@ -316,7 +322,7 @@ class Mailer
 			else
 			{
 				//send with parameters
-				sender.send(message, personParamHeaders, personParameters);
+				sender.send(message, personParamHeaders, personParameters, haltOnFailure);
 			}
 		}catch(Exception e)
 		{
@@ -331,8 +337,6 @@ class Mailer
 				logger.error("Error",e);
 				System.err.println("Error");
 			}
-			logger.info("Program stoped");
-			System.exit(1);
 		}
 		
 		//print bad emails
@@ -371,7 +375,7 @@ class Mailer
 		
 		//print not sent messages
 		List<Message> notSentMessages = sender.getErrorSendMessages();
-		if(!notSentMessages.isEmpty())
+		if(notSentMessages != null && !notSentMessages.isEmpty())
 		{
 			System.err.println("Some messages not been sent");
 			logger.warn("-----");
@@ -704,6 +708,10 @@ class Mailer
 		Option oTrace = OptionBuilder
 				.withDescription("Set trace log level. Send messages will be saved on disk")
 				.create("trace");
+		
+		Option oHaltOnFailure = OptionBuilder
+				.withDescription("Stop program if exists bad emails or wrong parameters")
+				.create("haltOnFailure");
 				
 		options.addOption(oSmtpHost);
 		options.addOption(oSmtpPort);
@@ -722,6 +730,7 @@ class Mailer
 		options.addOptionGroup(ogAltText);
 		options.addOption(oRelated);
 		options.addOption(oTrace);
+		options.addOption(oHaltOnFailure);
 		return options;
 	}
 
