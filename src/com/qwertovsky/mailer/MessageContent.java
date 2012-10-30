@@ -1,6 +1,7 @@
 package com.qwertovsky.mailer;
 
 import java.io.BufferedInputStream;
+import java.nio.file.Files;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,6 +12,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,9 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
 import com.qwertovsky.mailer.errors.QwertoMailerException;
+
+import eu.medsea.mimeutil.MimeUtil;
+import eu.medsea.mimeutil.MimeUtil2;
 
 
 /**
@@ -249,17 +254,34 @@ public class MessageContent
 	{
 		if(attachments == null)
 			return;
+		
+		//create new attachment parts
+		List<MimeBodyPart> attachmentParts = new ArrayList<MimeBodyPart>(attachments.size());
+		for(File attachment:attachments)
+		{
+			MimeBodyPart bodyPart = new MimeBodyPart();
+			DataSource source = new FileDataSource(attachment);
+			bodyPart.setDataHandler(new DataHandler(source));
+			String filename = null;
+			try
+			{
+				filename = MimeUtility.encodeText(attachment.getName(),charset, null);
+				String mimeType = Files.probeContentType(attachment.toPath());
+				bodyPart.setHeader("Content-Type", mimeType + "; name=\"" + filename+"\"");
+				bodyPart.setFileName(filename);
+			} catch (UnsupportedEncodingException e)
+			{
+				filename = attachment.getName();
+			}
+			attachmentParts.add(bodyPart);
+		}
+		
 		if(content instanceof Multipart
 				&& ((Multipart)content).getContentType().startsWith("multipart/mixed"))
 		{
 			//add attachments to end
-			MimeBodyPart bodyPart = null;
-			for(File attachment:attachments)
+			for(MimeBodyPart bodyPart: attachmentParts)
 			{
-				bodyPart = new MimeBodyPart();
-				DataSource source = new FileDataSource(attachment);
-				bodyPart.setDataHandler(new DataHandler(source));
-				bodyPart.setFileName(attachment.getName());
 				((Multipart)content).addBodyPart(bodyPart);
 			}
 		}
@@ -284,24 +306,8 @@ public class MessageContent
 				multipart.addBodyPart(bodyPart);
 			}
 			//add attachments to end of message
-			MimeBodyPart bodyPart = null;
-			for(File attachment:attachments)
+			for(MimeBodyPart bodyPart: attachmentParts)
 			{
-				bodyPart = new MimeBodyPart();
-				DataSource source = new FileDataSource(attachment);
-				bodyPart.setDataHandler(new DataHandler(source));
-				String filename = null;
-				try
-				{
-					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-					String mimeType = URLConnection.guessContentTypeFromStream(is);
-					filename = MimeUtility.encodeText(attachment.getName(),charset, null);
-					bodyPart.setHeader("Content-Type",mimeType + "; name=\"" + filename+"\"");
-					bodyPart.setFileName(filename);
-				} catch (UnsupportedEncodingException e)
-				{
-					filename = attachment.getName();
-				}
 				multipart.addBodyPart(bodyPart);
 			}
 			content = multipart;
@@ -369,8 +375,7 @@ public class MessageContent
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					String mimeType = Files.probeContentType(attachment.toPath());
 					attachPart.setHeader("Content-Type",mimeType);
 					attachPart.setContentID("<" + attachment.getName()
 							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
@@ -424,8 +429,7 @@ public class MessageContent
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					String mimeType = Files.probeContentType(attachment.toPath());
 					attachPart.setHeader("Content-Type",mimeType);
 					attachPart.setContentID("<" + attachment.getName()
 							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
@@ -471,8 +475,7 @@ public class MessageContent
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				String mimeType = Files.probeContentType(attachment.toPath());
 				attachPart.setHeader("Content-Type",mimeType);
 				attachPart.setContentID("<" + attachment.getName()
 						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
@@ -513,8 +516,7 @@ public class MessageContent
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				String mimeType = Files.probeContentType(attachment.toPath());
 				attachPart.setHeader("Content-Type",mimeType);
 				attachPart.setContentID("<" + attachment.getName()
 						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
@@ -562,8 +564,7 @@ public class MessageContent
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					String mimeType = Files.probeContentType(attachment.toPath());
 					attachPart.setHeader("Content-Type",mimeType);
 					attachPart.setContentID("<" + attachment.getName()
 							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
@@ -604,8 +605,7 @@ public class MessageContent
 					attachPart.setDataHandler(new DataHandler(source));
 					attachPart.setFileName(attachment.getName());
 					attachPart.setDisposition(MimeBodyPart.INLINE);
-					InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-					String mimeType = URLConnection.guessContentTypeFromStream(is);
+					String mimeType = Files.probeContentType(attachment.toPath());
 					attachPart.setHeader("Content-Type",mimeType);
 					attachPart.setContentID("<" + attachment.getName()
 							+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
@@ -645,8 +645,7 @@ public class MessageContent
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				String mimeType = Files.probeContentType(attachment.toPath());
 				attachPart.setHeader("Content-Type",mimeType);
 				attachPart.setContentID("<" + attachment.getName()
 						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
@@ -679,8 +678,7 @@ public class MessageContent
 				attachPart.setDataHandler(new DataHandler(source));
 				attachPart.setFileName(attachment.getName());
 				attachPart.setDisposition(MimeBodyPart.INLINE);
-				InputStream is = new BufferedInputStream(new FileInputStream(attachment));
-				String mimeType = URLConnection.guessContentTypeFromStream(is);
+				String mimeType = Files.probeContentType(attachment.toPath());
 				attachPart.setHeader("Content-Type",mimeType);
 				attachPart.setContentID("<" + attachment.getName()
 						+ "." + attachPart.hashCode() +"."+ System.currentTimeMillis() +">");
