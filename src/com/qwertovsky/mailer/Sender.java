@@ -387,7 +387,6 @@ public class Sender
 					sb.append("\"" + parameters.get(key) + "\"");
 				}
 				logger.error("Recipients list is empty: " + sb.toString());
-				badParametersMap.add(parameters);
 				continue;
 			}
 			

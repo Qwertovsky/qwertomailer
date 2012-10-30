@@ -335,11 +335,46 @@ class Mailer
 			System.exit(1);
 		}
 		
+		//print bad emails
+		List<String> badEmails = sender.getBadEmails();
+		if(!badEmails.isEmpty())
+		{
+			System.err.println("Some emails is wrong");
+			logger.warn("----");
+			logger.warn("Some emails is wrong");
+			for(String badEmail:badEmails)
+			{
+				logger.warn(badEmail);
+			}
+		}
+		
+		//print bad emails
+		List<Map<String, String>> badParameters = sender.getBadParameters();
+		if(!badParameters.isEmpty())
+		{
+			System.err.println("Some parameters is wrong");
+			logger.warn("----");
+			logger.warn("Some parameters is wrong");
+			for(Map<String, String> parameters:badParameters)
+			{
+				StringBuilder sb = new StringBuilder();
+				Set<String> headers = parameters.keySet();
+				for(String header:headers)
+				{
+					if(sb.length() > 0)
+						sb.append(", ");
+					sb.append("\"" + parameters.get(header) + "\"");
+				}
+				logger.warn(sb.toString());
+			}
+		}
+		
 		//print not sent messages
 		List<Message> notSentMessages = sender.getErrorSendMessages();
 		if(!notSentMessages.isEmpty())
 		{
 			System.err.println("Some messages not been sent");
+			logger.warn("-----");
 			logger.warn("Some messages not been sent");
 			for(Message notSentMessage:notSentMessages)
 			{
