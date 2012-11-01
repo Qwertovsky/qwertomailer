@@ -318,10 +318,14 @@ class Mailer
 		try
 		{
 			if(!emailsTo.isEmpty())
+			{
+				logger.info("Message count for send: " + emailsTo.size());
 				sender.send(message, emailsTo);
+			}
 			else
 			{
 				//send with parameters
+				logger.info("Message count for send: " + personParameters.size());
 				sender.send(message, personParamHeaders, personParameters, haltOnFailure);
 			}
 		}catch(Exception e)
@@ -338,6 +342,10 @@ class Mailer
 				System.err.println("Error");
 			}
 		}
+		
+		List<Message> sentMessages = sender.getSentMessages();
+		logger.info("----");
+		logger.info("Sent messages count: " + sentMessages.size());
 		
 		//print bad emails
 		List<String> badEmails = sender.getBadEmails();
@@ -374,7 +382,7 @@ class Mailer
 		}
 		
 		//print not sent messages
-		List<Message> notSentMessages = sender.getErrorSendMessages();
+		List<Message> notSentMessages = sender.getNotSentMessages();
 		if(notSentMessages != null && !notSentMessages.isEmpty())
 		{
 			System.err.println("Some messages not been sent");

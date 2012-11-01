@@ -46,7 +46,8 @@ public class Sender
 	private boolean traceMessages = false;
 	private List<String> badEmails;
 	private List<Map<String, String>> badParametersMap;
-	private List<Message> errorSendMessages;
+	private List<Message> notSentMessages;
+	private List<Message> sentMessages;
 	
 	final Logger logger = LoggerFactory.getLogger(Sender.class);
 
@@ -208,7 +209,7 @@ public class Sender
 		
 		//send messages
 		logger.info("Start sending: " + messages.size() + " messages");
-		errorSendMessages = new ArrayList<Message>();
+		notSentMessages = new ArrayList<Message>();
 		for(Message message:messages)
 		{
 			sendMessage(message);
@@ -438,7 +439,7 @@ public class Sender
 		
 		//send messages
 		logger.info("Start sending");
-		errorSendMessages = new ArrayList<Message>();
+		notSentMessages = new ArrayList<Message>();
 		for(Message message:messages)
 		{
 			sendMessage(message);
@@ -501,6 +502,7 @@ public class Sender
 				{
 					sb.append("error get recipients");
 				}
+				sentMessages.add(message);
 				logger.trace("Message " + messageId +" has been send to: " + sb.toString());
 			}
 		} catch (Exception me)
@@ -525,7 +527,7 @@ public class Sender
 			{
 				sb.append("error get recipients");
 			}
-			errorSendMessages.add(message);			
+			notSentMessages.add(message);			
 			logger.error("Error ("+ me.getMessage() +") send message to: " + sb.toString());
 		}
 		
@@ -712,11 +714,21 @@ public class Sender
 	
 	//--------------------------------------------
 	/**
-	 * Get not send messages that were in the last send operation.
-	 * @return not send messages
+	 * Get not sent messages that were in the last send operation.
+	 * @return not sent messages
 	 */
-	public List<Message> getErrorSendMessages()
+	public List<Message> getNotSentMessages()
 	{
-		return errorSendMessages;
+		return notSentMessages;
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Get not sent messages that were in the last send operation.
+	 * @return not sent messages
+	 */
+	public List<Message> getSentMessages()
+	{
+		return sentMessages;
 	}
 }
