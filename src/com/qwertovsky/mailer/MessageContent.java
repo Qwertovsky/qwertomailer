@@ -1,7 +1,5 @@
 package com.qwertovsky.mailer;
 
-import java.io.BufferedInputStream;
-import java.nio.file.Files;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,9 +8,8 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.URLConnection;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +22,8 @@ import javax.activation.FileDataSource;
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -42,9 +37,6 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
 import com.qwertovsky.mailer.errors.QwertoMailerException;
-
-import eu.medsea.mimeutil.MimeUtil;
-import eu.medsea.mimeutil.MimeUtil2;
 
 
 /**
@@ -66,11 +58,11 @@ public class MessageContent
 	/**
 	 * Create copy of MessageContent object
 	 * @param messageContent source object
-	 * @throws MessagingException
+	 * @throws Exception
 	 * @throws NullPointerException MessageContent is null
 	 */
 	public MessageContent (MessageContent messageContent)
-		throws MessagingException, NullPointerException
+		throws Exception, NullPointerException
 	{
 		Object newContent = messageContent.getContent();
 		if(newContent instanceof String)
@@ -108,16 +100,15 @@ public class MessageContent
 	 * Not allow create message with no subject or with empty subject. 
 	 * @param EMLFile file contains message in EML file format
 	 * @throws FileNotFoundException EML file not exists
-	 * @throws IOException 
-	 * @throws MessagingException
+	 * @throws Exception 
 	 * @throws NullPointerException EML file is null
 	 * @throws QwertoMailerException Subject can't be null or empty
 	 */
 	public MessageContent(File EMLFile)
 		throws QwertoMailerException
 		, FileNotFoundException
-		, MessagingException
-		, IOException
+		, NullPointerException
+		, Exception
 	{
 		InputStream isEML = null;
 		isEML = new FileInputStream(EMLFile);
@@ -130,15 +121,12 @@ public class MessageContent
 	 * Only content, content type and subject will be get from file.<br />
 	 * Not allow create message with no subject or with empty subject. 
 	 * @param EMLFileIStream input stream contains message in EML file format
-	 * @throws IOException 
-	 * @throws MessagingException
-	 * @throws NullPointerException EML file is null
+	 * @throws Exception 
 	 * @throws QwertoMailerException Subject can't be null or empty
 	 */
 	public MessageContent(InputStream EMLFileIStream)
 		throws QwertoMailerException
-		, MessagingException
-		, IOException
+		, Exception
 	{
 		getMessageFromStream(EMLFileIStream);
 	}
@@ -146,8 +134,7 @@ public class MessageContent
 	//--------------------------------------------
 	private void getMessageFromStream(InputStream EMLFileIStream)
 	throws QwertoMailerException
-	, MessagingException
-	, IOException
+	, Exception
 	{
 		Session mailSession = Session.getDefaultInstance(new Properties(), null);
 		Message message = new MimeMessage(mailSession, EMLFileIStream);
@@ -172,12 +159,12 @@ public class MessageContent
 	 * @param subject 
 	 * @param charset encoding of content (default is "utf-8")
 	 * @throws QwertoMailerException if content is null or content is empty text line
-	 * 	<br />- if content type is null or content type is empty text line, message "Bad ContentType"
+	 * 	<br />- if content type is null or content type is empty text line or error parse,
+	 *  message "Bad ContentType"
 	 *  <br />- if subject is null or subject is empty text line, message "Bad subject"
-	 * @throws ParseException Bad ContentType
 	 */
 	public MessageContent(String content, String contentType, String subject, String charset)
-		throws QwertoMailerException, ParseException
+		throws QwertoMailerException
 	{
 		//not allow content with no body parts
 		if(content == null || content.equals(""))
@@ -205,7 +192,7 @@ public class MessageContent
 		} catch (ParseException pe)
 		{
 			//specify that the problem relates to the ContentType
-			throw new ParseException("Bad ContentType: " + pe.getMessage());
+			throw new QwertoMailerException("Bad ContentType: " + pe.getMessage());
 		}
 	}
 	
@@ -229,11 +216,13 @@ public class MessageContent
 	 * @param email email address
 	 * @param charset encoding
 	 * @throws QwertoMailerException email is null or email is empty
-	 * @throws AddressException 
+	 * @throws Exception if the address isn't valid
 	 * @throws UnsupportedEncodingException
 	 */
 	public void setAddressFrom(String person, String email, String charset)
-		throws QwertoMailerException, AddressException, UnsupportedEncodingException
+		throws QwertoMailerException
+		, Exception
+		, UnsupportedEncodingException
 	{
 		if(email == null || email.length() == 0)
 			throw new QwertoMailerException ("Email in FROM can't be null or empty");
@@ -244,12 +233,12 @@ public class MessageContent
 	/**
 	 * Add files to message
 	 * @param attachments list of files
-	 * @throws MessagingException
+	 * @throws Exception
 	 * @throws FileNotFoundException
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs 
 	 */
 	public void addAttachments(List<File> attachments)
-		throws MessagingException, FileNotFoundException, IOException
+		throws Exception, FileNotFoundException, IOException
 	
 	{
 		if(attachments == null)
@@ -318,12 +307,12 @@ public class MessageContent
 	/**
 	 * Attach file to message
 	 * @param attachment
-	 * @throws MessagingException
+	 * @throws Exception
 	 * @throws FileNotFoundException
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs 
 	 */
 	public void addAttachment(File attachment)
-		throws MessagingException, FileNotFoundException, IOException
+		throws Exception, FileNotFoundException, IOException
 	{
 		List<File> attachments = new ArrayList<File>(1);
 		attachments.add(attachment);
@@ -337,12 +326,12 @@ public class MessageContent
 	 * Return &lt;content-id&gt; 
 	 * @param path file path from image attribute 'src' (&lt;img src="<b>path</b>" /&gt;) 
 	 * @return Content-ID of attachment with &lt; &gt;
-	 * @throws MessagingException
+	 * @throws Exception
 	 * @throws IOException
 	 * @throws QwertoMailerException Inline image url is null or empty
 	 */
 	protected String addInlineAttachment(String path)
-		throws MessagingException, IOException, QwertoMailerException
+		throws Exception, IOException, QwertoMailerException
 	{
 		if(path == null || path.length() == 0)
 			throw new QwertoMailerException("Inline image url can't be null or empty");
@@ -708,11 +697,10 @@ public class MessageContent
 	 * @return list of file path, that was specified in html part
 	 * @throws Exception 
 	 * @throws IOException 
-	 * @throws MessagingException 
 	 * @throws QwertoMailerException 
 	 */
 	public List<String> setRelated()
-		throws MessagingException, IOException, QwertoMailerException
+		throws Exception, IOException, QwertoMailerException
 	{
 		List<String> paths = null;
 		//get html part content
@@ -847,10 +835,10 @@ public class MessageContent
 	 * Add alternative text for email clients, that do not support HTML message
 	 * @param text plain text
 	 * @param charset encoding
-	 * @throws MessagingException
-	 * @throws IOException
+	 * @throws Exception
 	 */
-	public void setAlternativeText(String text, String charset) throws MessagingException, IOException
+	public void setAlternativeText(String text, String charset)
+	throws Exception
 	{
 		/*
 		 * Message have the following format:
@@ -997,15 +985,12 @@ public class MessageContent
 	 * @param headers array of parameter's headers
 	 * @param parameters array of parameters
 	 * @throws IOException
-	 * @throws MessagingException
-	 * @throws org.apache.velocity.runtime.parser.ParseException
 	 * @throws QwertoMailerException Headers can't be null or have length equal to 0,
 	 * <br />Parameters can't be null or have length equal to 0
 	 * <br />Parameters must be not less then headers
 	 */
 	public void setParameters(String[] headers, String[] parameters)
-		throws IOException, MessagingException
-		, org.apache.velocity.runtime.parser.ParseException
+		throws Exception
 		, QwertoMailerException
 	{
 		if(headers == null || headers.length == 0)
@@ -1035,14 +1020,11 @@ public class MessageContent
 	 *  - $header will be replaced to empty string
 	 * @param parameters map of parameters
 	 * @throws IOException
-	 * @throws MessagingException
-	 * @throws org.apache.velocity.runtime.parser.ParseException
 	 * @throws QwertoMailerException Parameters can't be null or have length equal to 0
 	 * 
 	 */
 	public void setParameters(Map<String, String> parameters)
-		throws IOException, MessagingException
-		, org.apache.velocity.runtime.parser.ParseException
+		throws Exception
 		, QwertoMailerException
 	{
 		if(parameters == null || parameters.size() == 0)
