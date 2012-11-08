@@ -2,7 +2,6 @@ package com.qwertovsky.mailer;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +23,6 @@ import javax.mail.internet.InternetAddress;
 
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,11 +58,11 @@ public class Sender
 	 * @param smtpPassword SMTP server password
 	 * @param hostname local machine name
 	 * @throws QwertoMailerException SMTP server is not specified (NULL or empty)
-	 * @throws MessagingException 
+	 * @throws Exception 
 	 */
 	public Sender(String smtpHostName, int smtpPort, final String smtpUser,
 			final String smtpPassword, String hostname)
-		throws QwertoMailerException, MessagingException
+		throws QwertoMailerException, Exception
 	{
 		if(smtpHostName == null || smtpHostName.length() == 0)
 			throw new QwertoMailerException("SMTP server is not specified");
@@ -128,12 +126,12 @@ public class Sender
 	 * @throws QwertoMailerException Message is null
 	 * , From email has not been specified
 	 * , Recipients list is empty
-	 * @throws MessagingException  
+	 * @throws Exception  
 	 * @see #send(MessageContent, List, boolean)
 	 * 
 	 */
 	public void send(MessageContent messageContent, Set<InternetAddress> emailsTo)
-	throws QwertoMailerException, MessagingException
+	throws QwertoMailerException, Exception
 		
 	{
 		send(messageContent, emailsTo, false);
@@ -152,13 +150,13 @@ public class Sender
 	 * , From email has not been specified
 	 * , Recipients list is empty
 	 * , Halt on failure (bad emails present)
-	 * @throws MessagingException 
+	 * @throws Exception 
 	 * @see #send(MessageContent, List) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, Set<InternetAddress> emailsTo
 			, boolean haltOnFailure)
-	throws QwertoMailerException, MessagingException
+	throws QwertoMailerException, Exception
 		
 	{
 		if(messageContent == null)
@@ -227,15 +225,13 @@ public class Sender
 	 * @throws QwertoMailerException Message is null
 	 * , From email has not been specified
 	 * , Recipients list is empty
-	 * @throws ParseException 
-	 * @throws IOException 
-	 * @throws MessagingException
+	 * @throws Exception 
 	 * @see #send(MessageContent, String[], List, boolean) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, String[] personParamHeaders,
 			List<String[]> personParameters)
-	throws QwertoMailerException, IOException, MessagingException, ParseException
+	throws QwertoMailerException, Exception
 	{
 		send(messageContent, personParamHeaders, personParameters, false);
 	}
@@ -255,15 +251,13 @@ public class Sender
 	 * , Recipients list is empty
 	 * , Emails not present in file
 	 * , Halt on failure (bad emails present)
-	 * @throws ParseException 
-	 * @throws IOException 
-	 * @throws MessagingException
+	 * @throws Exception 
 	 * @see #send(MessageContent, String[], List) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, String[] personParamHeaders,
 			List<String[]> personParameters, boolean haltOnFailure)
-	throws QwertoMailerException, IOException, MessagingException, ParseException
+	throws QwertoMailerException, Exception
 	{
 		//create list of parameters maps
 		int listSize = personParameters.size();
@@ -309,14 +303,12 @@ public class Sender
 	 * , From email has not been specified
 	 * , Recipients list is empty
 	 * , Emails not present in file
-	 * @throws ParseException 
-	 * @throws IOException 
-	 * @throws MessagingException
+	 * @throws Exception 
 	 * @see #send(MessageContent, List, boolean) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, List<Map<String, String>> personParameters)
-	throws QwertoMailerException, IOException, MessagingException, ParseException
+	throws QwertoMailerException, Exception
 	{
 		send(messageContent, personParameters, false);
 	}
@@ -335,15 +327,13 @@ public class Sender
 	 * , Recipients list is empty
 	 * , Emails not present in file
 	 * , Halt on failure (bad emails present)
-	 * @throws ParseException 
-	 * @throws IOException 
-	 * @throws MessagingException
+	 * @throws Exception 
 	 * @see #send(MessageContent, List) 
 	 * 
 	 */
 	public void send(MessageContent messageContent, List<Map<String, String>> personParameters
 			, boolean haltOnFailure)
-	throws QwertoMailerException, IOException, MessagingException, ParseException
+	throws QwertoMailerException, Exception
 	{
 		if(messageContent == null)
 			throw new QwertoMailerException("Message is null");

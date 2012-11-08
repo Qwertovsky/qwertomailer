@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.NoSuchProviderException;
 import javax.mail.internet.InternetAddress;
@@ -23,7 +21,6 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.apache.velocity.runtime.parser.ParseException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.subethamail.wiser.Wiser;
@@ -56,7 +53,7 @@ public class SenderParametersTest
 	@Test
 	@Ignore
 	public void testSendParameters()
-	throws QwertoMailerException, MessagingException, IOException, ParseException
+	throws Exception
 	{
 		//error
 		Sender sender = new Sender("localhost",2500,null,null,null);
@@ -143,7 +140,7 @@ public class SenderParametersTest
 	//--------------------------------------------
 	@Test
 	public void testSendInlineParameters()
-	throws QwertoMailerException, MessagingException, IOException
+	throws Exception
 	{
 		Sender sender = new Sender("localhost",2500,null,null,null);
 		MessageContent messageContent = new MessageContent("message $message"
@@ -164,15 +161,18 @@ public class SenderParametersTest
 		{
 			sender.send(messageContent, personParamHeaders, personParameters);
 			List<WiserMessage> wiserMessages = wiser.getMessages();
-			//2 addresses in parameters - 2 messages on server
-			if(wiserMessages.size() != 2)
-				fail("Incorrect messages count");
-			MimeMessage message = wiserMessages.get(0).getMimeMessage();
-			String subject = message.getSubject();
-			Multipart body = (Multipart) message.getContent();
+			//one parameter - one message, two addresses - two wiser messages
+			int count = wiserMessages.size();
+			assertEquals(2, count);
+			MimeMessage message1 = wiserMessages.get(0).getMimeMessage();
+			MimeMessage message2 = wiserMessages.get(1).getMimeMessage();
+			assertEquals(message1.getMessageID(), message2.getMessageID());
+			
+			String subject = message1.getSubject();
+			Multipart body = (Multipart) message1.getContent();
 			String htmlPart = (String) body.getBodyPart(1).getContent();
 			String altPart = (String) body.getBodyPart(0).getContent();
-			String address = ((InternetAddress)message.getRecipients(RecipientType.TO)[0])
+			String address = ((InternetAddress)message1.getRecipients(RecipientType.TO)[0])
 				.getAddress();
 			
 			if(!subject.contains("subject subject"))
@@ -193,7 +193,7 @@ public class SenderParametersTest
 	//--------------------------------------------
 	@Test
 	public void testSendParametersHaltOnFailure()
-	throws QwertoMailerException, MessagingException, IOException, ParseException
+	throws Exception
 	{
 		//error
 		//QwertoMailerException must rise

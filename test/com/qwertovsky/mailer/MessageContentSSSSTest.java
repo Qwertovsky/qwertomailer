@@ -97,10 +97,6 @@ public class MessageContentSSSSTest
 		} catch (QwertoMailerException qme)
 		{
 			//pass
-		} catch (ParseException pe)
-		{
-			if(contentType.equals(BAD_CONTENT_TYPE))
-				return; //pass
 		}
 		catch (Exception e)
 		{
