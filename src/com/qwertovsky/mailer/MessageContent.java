@@ -1,5 +1,6 @@
 package com.qwertovsky.mailer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -194,6 +195,28 @@ public class MessageContent
 			//specify that the problem relates to the ContentType
 			throw new QwertoMailerException("Bad ContentType: " + pe.getMessage());
 		}
+	}
+	
+	//--------------------------------------------
+	/**
+	 * Return EML message as byte array
+	 * @throws Exception error create message from content
+	 */
+	public byte[] toByteArray()
+	throws Exception
+	{
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		
+		Session session = Session.getDefaultInstance(new Properties(), null);
+		MimeMessage mimeMessage = new MimeMessage(session);
+		mimeMessage.setFrom(addressFrom);
+		mimeMessage.setContent(content, contentType);
+		mimeMessage.setSubject(subject, charset);
+		mimeMessage.setHeader("Content-Transfer-Encoding", contentTransferEncoding);
+		
+		mimeMessage.writeTo(os);
+		byte[] byteArray = os.toByteArray();
+		return byteArray;
 	}
 	
 	//--------------------------------------------

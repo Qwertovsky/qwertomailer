@@ -1,17 +1,23 @@
 package com.qwertovsky.mailer;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.mail.BodyPart;
 import javax.mail.Multipart;
+import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import org.junit.Test;
 
@@ -1440,5 +1446,25 @@ public class MessageContentTest
 			e.printStackTrace();
 			fail("incorrect setParameters");
 		}
+	}
+	
+	//--------------------------------------------
+	@Test
+	public void testToByteArray() throws Exception
+	{
+		MessageContent messageContent = new MessageContent("test message", "text/html", "subject", "utf-8");
+		byte[] messageByteArray = messageContent.toByteArray();
+		
+		ByteArrayInputStream messageIS = new ByteArrayInputStream(messageByteArray);
+		Session session = Session.getDefaultInstance(new Properties(), null);
+		MimeMessage mimeMessage = new MimeMessage(session, messageIS);
+		
+		String contentType = mimeMessage.getContentType();
+		Object contentObject = mimeMessage.getContent();
+		String subject = mimeMessage.getSubject();
+		
+		assertTrue(contentType.startsWith("text/html"));
+		assertEquals("test message", contentObject);
+		assertEquals("subject", subject);
 	}
 }
