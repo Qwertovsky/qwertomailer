@@ -1,10 +1,35 @@
-Changes from 0.8.0 to 0.8.14
+Changes from 0.8.14 to 0.8.x
 ============================
 
 Bug fixes
 ---------
+	* MIME type of attachment now detect more correctly
+	* Remove from public methods exceptions that depend from third libraries
+	* NullPointerException when use as console program (one of badEmails or badParameters is null)
 
 New features
 ------------
+	* Print error messages and settings to log
+	* Add option 'haltOnFailure'. Stop send if bad parameters exist.
+	* Sender#sentMessages() return sent messages
+	* MessageContent#toByteArray() return byte array of message in EML format
+	* Sender#getErrorSendMessages rename to #getNotSentMessages
 
+Changes from 0.8 to 0.8.14
+============================
 
+Bug fixes
+---------
+	* Name of attachment with no latin symbols
+	* File with attachments list read in specified tncoding (utf-8 as default)
+	* Fix conflict 'EMLFile' and 'subject' options. If 'EMLFile' is specified, 'subject' is not requared. Subject will be get from EML file.
+	* If specified more than one same emails, will be send one message.
+
+New features
+------------
+	* Print in log full path of processed files
+	* Sender#getErrorSendMessages return not sent messages
+	* Set parameters to MessageContent by Map 
+	* Sender#send with Map parameters
+	* Create message content from EML file input stream 
+	
