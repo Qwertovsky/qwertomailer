@@ -345,7 +345,8 @@ class Mailer
 		
 		List<Message> sentMessages = sender.getSentMessages();
 		logger.info("----");
-		logger.info("Sent messages count: " + sentMessages.size());
+		logger.info("Sent messages count: " 
+				+ (sentMessages != null ? sentMessages.size() : 0));
 		
 		//print bad emails
 		List<String> badEmails = sender.getBadEmails();
