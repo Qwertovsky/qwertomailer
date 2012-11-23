@@ -1,6 +1,9 @@
 .classpath
+.gradle
+*.log
 /bin
-/build
+/build_gradle
+/build_ant
 /doc
 /log
 /messages

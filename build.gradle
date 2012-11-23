@@ -1,0 +1,44 @@
+apply plugin: 'java'
+
+dependencies
+{
+    //testCompile fileTree(dir: 'lib', include: ['junit*.jar','subethasmtp*.jar'])
+	compile fileTree(dir: 'lib', include: '*.jar')
+	runtime fileTree(dir: 'lib', exclude: ['junit*.jar','subethasmtp*.jar'])
+} 
+
+test.useJUnit()
+
+buildDir "build_gradle"
+sourceSets.main.java.setSrcDirs(['src'])
+sourceSets.main.resources.setSrcDirs(['resources'])
+sourceSets.test.java.setSrcDirs(['test'])
+sourceSets.test.resources.setSrcDirs(['resources'])
+
+test
+{
+    forkEvery 1 // or any value > 0
+	maxParallelForks 1
+}
+
+def jarName = "$project.name"+"-v.1"+".jar"
+println "$jarName"
+
+jar
+{
+	def today = new Date().format('yyyy-MM-dd HH:mm:ss')
+	
+	archiveName = "$jarName"
+	manifest
+	{
+		def manifestClasspath = configurations.runtime.collect { "lib/"+it.getName() }.join(' ')
+		attributes 'Main-Class': 'com.qwertovsky.mailer.Mailer','Class-Path': ". $manifestClasspath", 'Built-Date': "$today"
+	}
+}
+
+task zip(type: Zip)\
+{     
+ 	dependsOn 'jar'
+	from(jar.outputs.files){into('/')}
+	from(configurations.runtime){into('lib')}
+}
