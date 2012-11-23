@@ -9,7 +9,6 @@ import java.util.Collection;
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.ParseException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

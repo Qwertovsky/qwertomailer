@@ -21,7 +21,6 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
@@ -51,7 +50,6 @@ public class SenderParametersTest
 	
 	//--------------------------------------------
 	@Test
-	@Ignore
 	public void testSendParameters()
 	throws Exception
 	{
