@@ -13,6 +13,9 @@
 	
     <target name="config">
         <property file="build.properties"/>
+		<property name="buildDir" value="build_ant" />
+		<property name="classesDir" value="${buildDir}/classes" />
+		<property name="distrDir" value="${buildDir}/distributions" />
 		<path id="libPath">
 			<pathelement path="${log4j-jar}"/>
 			<pathelement path="${javamail-jar}"/>
@@ -29,28 +32,41 @@
     </target>
 	
 	<target name="clean">
-		<delete dir="bin" />
 		<delete includeemptydirs="true">
-			<fileset dir="build" excludes="*.zip"  includes="**/*" />
+			<fileset dir="build_ant" excludes="*.zip"  includes="**/*" />
 		</delete>
 		<delete dir="doc" />
+		<mkdir dir="${buildDir}" />
 	</target>
 	
 	<target name="compile" depends="config,clean">
-		<mkdir dir="bin" />
+		<mkdir dir ="${classesDir}/main" />
 		<javac srcdir="src"
 			encoding="utf-8"
 			classpathref="libPath"
 			includeAntRuntime="false"
-			destdir="bin"
+			destdir="${classesDir}/main"
 			debug="true"
 		/>
 	</target>
 	
-	<target name="test" depends="config,compile">
+	<target name="compileTest" depends="compile">
+		<mkdir dir ="${classesDir}/test" />
+		<javac srcdir="test"
+			encoding="utf-8"
+			classpath="${classesDir}/main"
+			classpathref="libPath"
+			includeAntRuntime="false"
+			destdir="${classesDir}/test"
+			debug="true"
+		/>
+	</target>
+	
+	<target name="test" depends="config,compileTest">
 		<junit haltonfailure="true" haltonerror="true" fork="on">
 			<classpath>
-				<pathelement path="./bin" />
+				<pathelement path="${classesDir}/test" />
+				<pathelement path="${classesDir}/main" />
 				<path refid="libPath"/>
 			</classpath>
 			<formatter type ="plain" />
@@ -78,21 +94,21 @@
 			version="true" />
 	</target>
 	
-	<target name="build" depends="compile,javadoc">
-		<mkdir dir="build" />
-		<mkdir dir="build/lib" />
-        <copy file="${javamail-jar}" todir="build/lib" />
-        <copy file="${log4j-jar}" todir="build/lib" />
-    	<copy file="${commons-cli-jar}" todir="build/lib" />
-		<copy file="${velocity-jar}" todir="build/lib" />
-		<copy file="${opencsv-jar}" todir="build/lib" />
-		<copy file="${commons-collections-jar}" todir="build/lib" />
-		<copy file="${commons-lang-jar}" todir="build/lib" />
-    	<copy file="${slf4j-api-jar}" todir="build/lib" />
-    	<copy file="${slf4j-log4j-jar}" todir="build/lib" />
+	<target name="build" depends="test,javadoc">
+		<mkdir dir="${distrDir}" />
+		<mkdir dir="${distrDir}/lib" />
+        <copy file="${javamail-jar}" todir="${distrDir}/lib" />
+        <copy file="${log4j-jar}" todir="${distrDir}/lib" />
+    	<copy file="${commons-cli-jar}" todir="${distrDir}/lib" />
+		<copy file="${velocity-jar}" todir="${distrDir}/lib" />
+		<copy file="${opencsv-jar}" todir="${distrDir}/lib" />
+		<copy file="${commons-collections-jar}" todir="${distrDir}/lib" />
+		<copy file="${commons-lang-jar}" todir="${distrDir}/lib" />
+    	<copy file="${slf4j-api-jar}" todir="${distrDir}/lib" />
+    	<copy file="${slf4j-log4j-jar}" todir="${distrDir}/lib" />
 						
 		<path id="build.classpath">
-			<fileset dir="build/lib" >
+			<fileset dir="${distrDir}/lib" >
 				<include name="**/*.jar"/>
 			</fileset>
 		</path>
@@ -114,30 +130,28 @@
     	</exec>
 		
 		<manifestclasspath property="jar-classpath"
-                       jarfile="build/qwertomailer-${git_ver}.jar">
+                       jarfile="${distrDir}/qwertomailer-${git_ver}.jar">
 			<classpath refid="build.classpath" />
 		</manifestclasspath>
-        <jar destfile="build/qwertomailer-${git_ver}.jar">
+        <jar destfile="${distrDir}/qwertomailer-${git_ver}.jar">
             <manifest>
                 <attribute name="Main-Class" value="com.qwertovsky.mailer.Mailer"/>
                 <attribute name="Class-Path" value=". ${jar-classpath}" />
 				<attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
             </manifest>
-            <fileset dir="bin" />
+            <fileset dir="${classesDir}/main" />
         </jar>
 		
-		<jar destfile="build/qwertomailer-${git_ver}-src.jar">
+		<jar destfile="${distrDir}/qwertomailer-${git_ver}-src.jar">
             <manifest>
                 <attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
             </manifest>
-            <fileset dir="src">
-				<exclude name="**/Mailer.java" />
-			</fileset>
+            <fileset dir="src" />
         </jar>
 		
-		<jar destfile="build/qwertomailer-${git_ver}-javadoc.jar">
+		<jar destfile="${distrDir}/qwertomailer-${git_ver}-javadoc.jar">
             <manifest>
                 <attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
@@ -146,8 +160,8 @@
 		</jar>
 		
 		
-		<zip destfile="build/qwertomailer-${git_ver}.zip" 
-			basedir="build"
+		<zip destfile="${distrDir}/qwertomailer-${git_ver}.zip" 
+			basedir="${distrDir}"
 			excludes="*.zip"
 		/>
     </target>
