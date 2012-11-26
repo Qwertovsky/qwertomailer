@@ -32,7 +32,7 @@ public class SenderParametersTest
 {
 	public static Logger logger1 = Logger.getLogger("org.subethamail");
 	public static Logger logger2 = Logger.getLogger("com.qwertovsky.mailer");
-	Wiser wiser;
+	private Wiser wiser;
 	
 	public SenderParametersTest()
 	{
@@ -44,8 +44,6 @@ public class SenderParametersTest
 		logger2.addAppender(appender);
 		
 		wiser = new Wiser(2500);
-		wiser.start();
-		
 	}
 	
 	//--------------------------------------------
@@ -53,6 +51,9 @@ public class SenderParametersTest
 	public void testSendParameters()
 	throws Exception
 	{
+		
+		wiser.start();
+		
 		//error
 		Sender sender = new Sender("localhost",2500,null,null,null);
 		MessageContent messageContent = new MessageContent("message $message"
@@ -133,6 +134,7 @@ public class SenderParametersTest
 		sender.send(messageContent, personParamHeaders, personParameters);
 		assertEquals(0, wiser.getMessages().size());
 		
+		wiser.stop();
 	}
 	
 	//--------------------------------------------
@@ -140,6 +142,8 @@ public class SenderParametersTest
 	public void testSendInlineParameters()
 	throws Exception
 	{
+		wiser.start();
+		
 		Sender sender = new Sender("localhost",2500,null,null,null);
 		MessageContent messageContent = new MessageContent("message $message"
 				, "text/plain", "subject $subject", "utf-8");
@@ -187,12 +191,16 @@ public class SenderParametersTest
 			e.printStackTrace();
 			fail("incorrect sendParameters");
 		}
+		
+		wiser.stop();
 	}
 	//--------------------------------------------
 	@Test
 	public void testSendParametersHaltOnFailure()
 	throws Exception
 	{
+		wiser.start();
+		
 		//error
 		//QwertoMailerException must rise
 		Sender sender = new Sender("localhost",2500,null,null,null);
@@ -231,13 +239,15 @@ public class SenderParametersTest
 			fail("incorrect halt on failure");
 		}
 		
-		
+		wiser.stop();
 	}
 	
 	//--------------------------------------------
 	@Test
 	public void testGetRecipientsList() throws NoSuchProviderException, Exception
 	{
+		wiser.start();
+		
 		Sender sender = new Sender("localhost",2500,null,null,null);
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("email1", "address1@domain, address2@domain");
@@ -255,12 +265,16 @@ public class SenderParametersTest
 		assertTrue("incorrect getRecipientsList",recipients.contains(new InternetAddress("address4@domain")));
 		assertTrue("incorrect getRecipientsList",recipients.contains(new InternetAddress("address5@domain")));
 		assertTrue("incorrect getRecipientsList",recipients.contains(new InternetAddress("address6@domain")));
+		
+		wiser.stop();
 	}
 	
 	//--------------------------------------------
 	@Test
 	public void testGetAttachments() throws NoSuchProviderException, Exception
 	{
+		wiser.start();
+		
 		Sender sender = new Sender("localhost",2500,null,null,null);
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("attach1", "test.png");
@@ -276,5 +290,6 @@ public class SenderParametersTest
 		assertEquals("incorrect getAttachments","test.eml",attachments.get(1).getName());
 		assertEquals("incorrect getAttachments","test.png",attachments.get(2).getName());
 		
+		wiser.stop();
 	}
 }
