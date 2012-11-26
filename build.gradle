@@ -2,9 +2,8 @@ apply plugin: 'java'
 
 dependencies
 {
-    //testCompile fileTree(dir: 'lib', include: ['junit*.jar','subethasmtp*.jar'])
-	compile fileTree(dir: 'lib', include: '*.jar')
-	runtime fileTree(dir: 'lib', exclude: ['junit*.jar','subethasmtp*.jar'])
+    testCompile fileTree(dir: 'lib')
+	compile fileTree(dir: 'lib', exclude: ['junit*.jar', 'subethasmtp*.jar'])
 } 
 
 test.useJUnit()
@@ -17,28 +16,71 @@ sourceSets.test.resources.setSrcDirs(['resources'])
 
 test
 {
-    forkEvery 1 // or any value > 0
+    forkEvery 1
 	maxParallelForks 1
 }
 
-def jarName = "$project.name"+"-v.1"+".jar"
-println "$jarName"
+//build date
+def today = new Date().format('yyyy-MM-dd HH:mm:ss')
 
 jar
 {
-	def today = new Date().format('yyyy-MM-dd HH:mm:ss')
+	//git version
+	def gitVersionOS = new ByteArrayOutputStream()
+	exec
+	{
+		commandLine "git", "describe", "--tags"
+		standardOutput = gitVersionOS
+	}
+	ext.gitVersion = gitVersionOS.toString().trim().replaceAll("v","")
 	
-	archiveName = "$jarName"
+	//gitDate
+	def gitDateOS = new ByteArrayOutputStream()
+	exec
+	{
+		commandLine "git", "show", "-s", "--format=%ci"
+		standardOutput = gitDateOS
+	}
+	ext.gitDate = gitDateOS.toString().trim()
+	
+	//jar name
+	archiveName = "$project.name"+"-$gitVersion"+".jar"
+	
 	manifest
 	{
 		def manifestClasspath = configurations.runtime.collect { "lib/"+it.getName() }.join(' ')
-		attributes 'Main-Class': 'com.qwertovsky.mailer.Mailer','Class-Path': ". $manifestClasspath", 'Built-Date': "$today"
+		attributes 'Main-Class': 'com.qwertovsky.mailer.Mailer','Class-Path': ". $manifestClasspath", 'Built-Date': "$today", "Implementation-Version":"$gitVersion $gitDate"
 	}
+	
+}
+
+task jarSrc(type: Jar)\
+{
+	archiveName = "$project.name"+"-$jar.gitVersion"+"-src.jar"
+	manifest
+	{
+		attributes "Built-Date": "$today", "Implementation-Version":"$jar.gitVersion $jar.gitDate"
+	}
+	from("src"){into('/')}
+}
+
+task jarDoc(type: Jar)\
+{
+	dependsOn 'javadoc'
+	archiveName = "$project.name"+"-$jar.gitVersion"+"-javadoc.jar"
+	manifest
+	{
+		attributes "Built-Date": "$today", "Implementation-Version":"$jar.gitVersion $jar.gitDate"
+	}
+	from("$buildDir/docs/javadoc"){into('/')}
 }
 
 task zip(type: Zip)\
 {     
- 	dependsOn 'jar'
+ 	dependsOn 'jar','jarSrc','jarDoc'
+	archiveName = "$project.name"+"-$jar.gitVersion"+".zip"
 	from(jar.outputs.files){into('/')}
+	from(jarSrc.outputs.files){into('/')}
+	from(jarDoc.outputs.files){into('/')}
 	from(configurations.runtime){into('lib')}
 }
