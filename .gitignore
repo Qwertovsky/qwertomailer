@@ -2,6 +2,7 @@
 .gradle
 *.log
 /bin
+/distr
 /build_gradle
 /build_ant
 /doc

@@ -6,6 +6,8 @@ Bug fixes
 	* MIME type of attachment now detect more correctly
 	* Remove from public methods exceptions that depend from third libraries
 	* NullPointerException when use as console program (one of badEmails or badParameters is null)
+	* NullPointerException when use as console program (if sentMessages is null)
+	* fix SenderParametersTest
 
 New features
 ------------
@@ -14,6 +16,7 @@ New features
 	* Sender#sentMessages() return sent messages
 	* MessageContent#toByteArray() return byte array of message in EML format
 	* Sender#getErrorSendMessages rename to #getNotSentMessages
+	* Add Gradle build file 
 
 Changes from 0.8 to 0.8.14
 ============================
