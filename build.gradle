@@ -18,6 +18,12 @@ test
 {
     forkEvery 1
 	maxParallelForks 1
+	doLast
+	{
+		delete 'log'
+		delete 'messages'
+		delete fileTree(dir:".", include:'*.log')
+	}
 }
 
 //build date

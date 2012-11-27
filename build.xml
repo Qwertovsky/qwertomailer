@@ -31,12 +31,12 @@
 	
 	<target name="clean" depends="config">
 		<delete includeemptydirs="true">
-			<fileset dir="build_ant" excludes="*.zip"  includes="**/*" />
+			<fileset dir="${buildDir}" erroronmissingdir="false" excludes="*.zip" />
 		</delete>
-		<mkdir dir="${buildDir}" />
 	</target>
 	
 	<target name="compile" depends="config,clean">
+		<mkdir dir="${buildDir}" />
 		<mkdir dir ="${classesDir}/main" />
 		<javac srcdir="src"
 			encoding="utf-8"
@@ -75,6 +75,11 @@
 			<test name="com.qwertovsky.mailer.MailerTest" todir="${reportDir}" />
 			<test name="com.qwertovsky.mailer.SenderParametersTest" todir="${reportDir}" />
 		</junit>
+		<delete includeemptydirs="true">
+			<fileset dir="." includes="*.log" />
+			<fileset dir="log" />
+			<fileset dir="messages" />
+		</delete>
 	</target>
 	
 	<target name="javadoc" depends="config">
