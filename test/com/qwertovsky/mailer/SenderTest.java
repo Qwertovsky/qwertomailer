@@ -134,7 +134,7 @@ public class SenderTest
 		//--------------------
 		try
 		{
-			emlFile = new File("test.eml");
+			emlFile = new File("test_files/test.eml");
 			MessageContent messageContent = new MessageContent(emlFile);
 			messageContent.setAddressFrom("from", "from@domain", "utf-8");
 			sender.send(messageContent, emailsTo);
@@ -181,7 +181,7 @@ public class SenderTest
 		//--------------------
 		try
 		{
-			emlFile = new File("test_multipart_alt.eml");
+			emlFile = new File("test_files/test_multipart_alt.eml");
 			MessageContent message = new MessageContent(emlFile);
 			message.setAddressFrom("from", "from@domain", "utf-8");
 			sender.send(message, emailsTo);
@@ -228,7 +228,7 @@ public class SenderTest
 		//--------------------
 		try
 		{
-			emlFile = new File("test_multipart_mixed.eml");
+			emlFile = new File("test_files/test_multipart_mixed.eml");
 			MessageContent message = new MessageContent(emlFile);
 			message.setAddressFrom("from", "from@domain", "utf-8");
 			sender.send(message, emailsTo);

@@ -18,7 +18,7 @@ Content-Transfer-Encoding: 8bit
 	test related message (тестовое сообщение)<br>
     <img alt="" src="cid:part1.00070004.09020305"
       height="89" width="128">
-	<br><img src="test.png" />
+	<br><img src="test_files/test.png" />
 	<br />$message
 </html>
 

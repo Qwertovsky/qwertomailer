@@ -25,7 +25,7 @@ Content-Transfer-Encoding: 7bit
 
 <html>
 	<b>test message (тестовое сообщение)</b>
-	<img src="test.png" />
+	<img src="test_files/test.png" />
 	<br />$message
 </html>
 

@@ -115,7 +115,7 @@ public class MailerTest
 				,"-subject", "test subject" 
 				,"-body", "<html>test message</html>"
 				,"-contentType", "text/html"
-				,"-attach", "test.png"
+				,"-attach", "test_files/test.png"
 				,"-emailFrom", "qwertovsky@gmail.com"
 				,"-emailTo", "qwertovsky@gmail.com"
 				});
@@ -133,7 +133,7 @@ public class MailerTest
 				,"-subject", "test subject" 
 				,"-body", "<html>test message</html>"
 				,"-contentType", "text/html"
-				,"-attach", "тест.png"
+				,"-attach", "test_files/тест.png"
 				,"-emailFrom", "qwertovsky@gmail.com"
 				,"-emailTo", "qwertovsky@gmail.com","-trace"
 				});
@@ -155,7 +155,7 @@ public class MailerTest
 				,"-subject", "test subject" 
 				,"-body", "<html>test message</html>"
 				,"-contentType", "text/html"
-				,"-attachFile", "attach_list"
+				,"-attachFile", "test_files/attach_list"
 				,"-emailFrom", "qwertovsky@gmail.com"
 				,"-emailTo", "qwertovsky@gmail.com","-trace"
 				});
@@ -177,7 +177,7 @@ public class MailerTest
 		wiser.getMessages().clear();
 		Mailer.main(new String[]{"-smtpHost", "localhost", "-smtpPort", "2500" 
 				,"-subject", "test subject" 
-				,"-body", "<html>test $parameter<img src='test.png' /> <br>related message</html>"
+				,"-body", "<html>test $parameter<img src='test_files/test.png' /> <br>related message</html>"
 				,"-contentType", "text/html"
 				,"-related"
 				,"-emailFrom", "qwertovsky@gmail.com"

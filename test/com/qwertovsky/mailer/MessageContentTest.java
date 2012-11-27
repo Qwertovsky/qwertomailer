@@ -38,9 +38,9 @@ public class MessageContentTest
 	{
 		File file1 = null;
 		File file2 = new File("");
-		File file3 = new File("test_notexists.eml");
-		File file4 = new File("test_bad_subject.eml");
-		File file5 = new File("test.eml");
+		File file3 = new File("test_files/test_notexists.eml");
+		File file4 = new File("test_files/test_bad_subject.eml");
+		File file5 = new File("test_files/test.eml");
 		
 		//not allow null file
 		try
@@ -129,7 +129,7 @@ public class MessageContentTest
 		//not allow null or empty subject
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			
 			try
 			{
@@ -185,7 +185,7 @@ public class MessageContentTest
 		//not allow null or empty email
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			try
 			{
 				message.setAddressFrom(null, null, null);
@@ -260,8 +260,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
-			message.addAttachment(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
+			message.addAttachment(new File("test_files/test.eml"));
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -287,8 +287,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt.eml"));
-			message.addAttachment(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt.eml"));
+			message.addAttachment(new File("test_files/test.eml"));
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -315,8 +315,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed.eml"));
-			message.addAttachment(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed.eml"));
+			message.addAttachment(new File("test_files/test.eml"));
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -345,7 +345,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			message.setAlternativeText("alternative text (алтернативный текст)", "utf-8");
 			if(!message.getContentType().startsWith("multipart/alternative"))
 				fail("incorrect setAlternativeText");
@@ -374,7 +374,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt.eml"));
 			message.setAlternativeText("alternative text (алтернативный текст)", "utf-8");
 			if(!message.getContentType().startsWith("multipart/alternative"))
 				fail("incorrect setAlternativeText");
@@ -404,7 +404,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed.eml"));
 			message.setAlternativeText("alternative text (алтернативный текст)", "utf-8");
 			if(!message.getContentType().startsWith("multipart/mixed"))
 				fail("incorrect setAlternativeText");
@@ -440,7 +440,7 @@ public class MessageContentTest
 		//not allow null and empty
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			if(!"8bit".equalsIgnoreCase(message.getContentTransferEncoding()))
 				fail("incorrect ContentTransferEncoding");
 			
@@ -473,8 +473,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
-			String cid = message.addInlineAttachment("../qwertomailer/test.png");
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
+			String cid = message.addInlineAttachment("../qwertomailer/test_files/test.png");
 			Object related = message.getContent();
 			if(related instanceof Multipart
 					&& ((Multipart)related).getContentType().startsWith("multipart/related"))
@@ -507,8 +507,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt.eml"));
-			String cid = message.addInlineAttachment("test.png");
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt.eml"));
+			String cid = message.addInlineAttachment("test_files/test.png");
 			Object alternative = message.getContent();
 			if(alternative instanceof Multipart
 					&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
@@ -549,8 +549,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_related.eml"));
-			String cid = message.addInlineAttachment("test.png");
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_related.eml"));
+			String cid = message.addInlineAttachment("test_files/test.png");
 			Object related = message.getContent();
 			if(related instanceof Multipart
 					&& ((Multipart)related).getContentType().startsWith("multipart/related"))
@@ -586,8 +586,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt_related.eml"));
-			String cid = message.addInlineAttachment("test.png");
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt_related.eml"));
+			String cid = message.addInlineAttachment("test_files/test.png");
 			Object alternative = message.getContent();
 			if(alternative instanceof Multipart
 					&& ((Multipart)alternative).getContentType().startsWith("multipart/alternative"))
@@ -629,8 +629,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed.eml"));
-			String cid = message.addInlineAttachment("test.png");
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed.eml"));
+			String cid = message.addInlineAttachment("test_files/test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -675,8 +675,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt.eml"));
-			String cid = message.addInlineAttachment("test.png");
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_alt.eml"));
+			String cid = message.addInlineAttachment("test_files/test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -726,8 +726,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_related.eml"));
-			String cid = message.addInlineAttachment("test.png");
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_related.eml"));
+			String cid = message.addInlineAttachment("test_files/test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -772,8 +772,8 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt_related.eml"));
-			String cid = message.addInlineAttachment("test.png");
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_alt_related.eml"));
+			String cid = message.addInlineAttachment("test_files/test.png");
 			Object mixed = message.getContent();
 			if(mixed instanceof Multipart
 					&& ((Multipart)mixed).getContentType().startsWith("multipart/mixed"))
@@ -823,11 +823,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("../qwertomailer/test.png"))
+			if(!paths.get(0).equalsIgnoreCase("../qwertomailer/test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -845,11 +845,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("test.png"))
+			if(!paths.get(0).equalsIgnoreCase("test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -866,11 +866,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("test.png"))
+			if(!paths.get(0).equalsIgnoreCase("test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -889,11 +889,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("test.png"))
+			if(!paths.get(0).equalsIgnoreCase("test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -911,11 +911,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("test.png"))
+			if(!paths.get(0).equalsIgnoreCase("test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -935,11 +935,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_alt.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("test.png"))
+			if(!paths.get(0).equalsIgnoreCase("test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -958,11 +958,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("test.png"))
+			if(!paths.get(0).equalsIgnoreCase("test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -983,11 +983,11 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_alt_related.eml"));
 			List<String> paths = message.setRelated();
 			if(paths.size() != 1)
 				fail("incorrect setRelated");
-			if(!paths.get(0).equalsIgnoreCase("test.png"))
+			if(!paths.get(0).equalsIgnoreCase("test_files/test.png"))
 				fail("incorrect setRelated");
 		}catch(Exception e)
 		{
@@ -1005,7 +1005,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			message.setParameters(new String[]{}
 				, new String[]{"message parameter","subject parameter"});
 			String html = (String) message.getContent();
@@ -1031,7 +1031,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter"});
 			String html = (String) message.getContent();
@@ -1057,7 +1057,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter",null});
 			String html = (String) message.getContent();
@@ -1086,7 +1086,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			String html = (String) message.getContent();
@@ -1110,7 +1110,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			Object alternative = message.getContent();
@@ -1146,7 +1146,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_related.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			Object related = message.getContent();
@@ -1180,7 +1180,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_alt_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_alt_related.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			Object alternative = message.getContent();
@@ -1223,7 +1223,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			Object mixed = message.getContent();
@@ -1257,7 +1257,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_alt.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			Object mixed = message.getContent();
@@ -1304,7 +1304,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_related.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			Object mixed = message.getContent();
@@ -1348,7 +1348,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test_multipart_mixed_alt_related.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test_multipart_mixed_alt_related.eml"));
 			message.setParameters(new String[]{"message", "subject"}
 				, new String[]{"message parameter","subject parameter"});
 			Object mixed = message.getContent();
@@ -1401,7 +1401,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			Map<String, String> parameters = new HashMap<String, String>();
 			parameters.put("message","message parameter");
 			parameters.put("subject","subject parameter");
@@ -1426,7 +1426,7 @@ public class MessageContentTest
 		 */
 		try
 		{
-			MessageContent message = new MessageContent(new File("test.eml"));
+			MessageContent message = new MessageContent(new File("test_files/test.eml"));
 			Map<String, String> parameters = new HashMap<String, String>();
 			message.setParameters(parameters);
 			String html = (String) message.getContent();

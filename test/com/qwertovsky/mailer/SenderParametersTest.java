@@ -277,11 +277,11 @@ public class SenderParametersTest
 		
 		Sender sender = new Sender("localhost",2500,null,null,null);
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put("attach1", "test.png");
-		parameters.put("attach2", "test.eml");
+		parameters.put("attach1", "test_files/test.png");
+		parameters.put("attach2", "test_files/test.eml");
 		parameters.put("param", "parameter");
 		parameters.put("attach3", "notexists_file");
-		parameters.put("attach4", " test.png ");
+		parameters.put("attach4", " test_files/test.png ");
 
 		List<File> attachments = sender.getAttachments(parameters);
 		if(attachments == null || attachments.size() != 3)
