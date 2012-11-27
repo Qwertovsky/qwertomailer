@@ -12,22 +12,20 @@
 	</scriptdef>
 	
     <target name="config">
-        <property file="build.properties"/>
-		<property name="buildDir" value="build_ant" />
+        <property name="buildDir" value="build_ant" />
 		<property name="classesDir" value="${buildDir}/classes" />
 		<property name="distrDir" value="${buildDir}/distributions" />
+		<property name="docsDir" value="${buildDir}/docs" />
+		<property name="tmpDir" value="${buildDir}/tmp" />
+		<property name="reportDir" value="${buildDir}/reports" />
 		<path id="libPath">
-			<pathelement path="${log4j-jar}"/>
-			<pathelement path="${javamail-jar}"/>
-			<pathelement path="${slf4j-api-jar}"/>
-			<pathelement path="${slf4j-log4j-jar}"/>
-			<pathelement path="${commons-cli-jar}"/>
-			<pathelement path="${commons-collections-jar}"/>
-			<pathelement path="${commons-lang-jar}"/>
-			<pathelement path="${velocity-jar}"/>
-			<pathelement path="${opencsv-jar}"/>
-			<pathelement path="${junit-jar}"/>
-			<pathelement path="${subethasmtp-jar}"/>
+			<fileset dir="lib" />
+		</path>
+		<path id="runtimeLibPath">
+			<fileset dir="lib">
+				<exclude name="junit*.jar" />
+				<exclude name="subethasmtp*.jar" />
+			</fileset>
 		</path>
     </target>
 	
@@ -35,7 +33,6 @@
 		<delete includeemptydirs="true">
 			<fileset dir="build_ant" excludes="*.zip"  includes="**/*" />
 		</delete>
-		<delete dir="doc" />
 		<mkdir dir="${buildDir}" />
 	</target>
 	
@@ -63,25 +60,29 @@
 	</target>
 	
 	<target name="test" depends="config,compileTest">
-		<junit haltonfailure="true" haltonerror="true" fork="on">
+		<mkdir dir="${tmpDir}" />
+		<mkdir dir="${reportDir}" />
+		<junit haltonfailure="true" haltonerror="true" fork="on" tempdir="${tmpDir}">
 			<classpath>
 				<pathelement path="${classesDir}/test" />
 				<pathelement path="${classesDir}/main" />
 				<path refid="libPath"/>
 			</classpath>
 			<formatter type ="plain" />
-			<test name="com.qwertovsky.mailer.MessageContentSSSSTest" outfile="TestResultMessageContentSSSS"/>
-			<test name="com.qwertovsky.mailer.MessageContentTest" outfile="TestResultMessageContent"/>
-			<test name="com.qwertovsky.mailer.SenderTest" outfile="TestResultSender"/>
-			<test name="com.qwertovsky.mailer.MailerTest" outfile="TestResultMailer"/>
+			<test name="com.qwertovsky.mailer.MessageContentSSSSTest" todir="${reportDir}" />
+			<test name="com.qwertovsky.mailer.MessageContentTest" todir="${reportDir}" />
+			<test name="com.qwertovsky.mailer.SenderTest" todir="${reportDir}" />
+			<test name="com.qwertovsky.mailer.MailerTest" todir="${reportDir}" />
+			<test name="com.qwertovsky.mailer.SenderParametersTest" todir="${reportDir}" />
 		</junit>
 	</target>
 	
 	<target name="javadoc" depends="config">
+		<mkdir dir ="${docsDir}" />
 		<javadoc access="public" 
 			author="true"
 			classpathref="libPath"
-			destdir="doc"
+			destdir="${docsDir}/javadoc"
 			nodeprecated="false"
 			nodeprecatedlist="false"
 			noindex="false"
@@ -97,15 +98,9 @@
 	<target name="build" depends="test,javadoc">
 		<mkdir dir="${distrDir}" />
 		<mkdir dir="${distrDir}/lib" />
-        <copy file="${javamail-jar}" todir="${distrDir}/lib" />
-        <copy file="${log4j-jar}" todir="${distrDir}/lib" />
-    	<copy file="${commons-cli-jar}" todir="${distrDir}/lib" />
-		<copy file="${velocity-jar}" todir="${distrDir}/lib" />
-		<copy file="${opencsv-jar}" todir="${distrDir}/lib" />
-		<copy file="${commons-collections-jar}" todir="${distrDir}/lib" />
-		<copy file="${commons-lang-jar}" todir="${distrDir}/lib" />
-    	<copy file="${slf4j-api-jar}" todir="${distrDir}/lib" />
-    	<copy file="${slf4j-log4j-jar}" todir="${distrDir}/lib" />
+        <copy todir="${distrDir}/lib">
+			<path refid="runtimeLibPath" />
+		</copy>
 						
 		<path id="build.classpath">
 			<fileset dir="${distrDir}/lib" >
@@ -156,7 +151,7 @@
                 <attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
             </manifest>
-            <fileset dir="doc" />
+            <fileset dir="${docsDir}/javadoc" />
 		</jar>
 		
 		
