@@ -29,7 +29,7 @@
 		</path>
     </target>
 	
-	<target name="clean">
+	<target name="clean" depends="config">
 		<delete includeemptydirs="true">
 			<fileset dir="build_ant" excludes="*.zip"  includes="**/*" />
 		</delete>
