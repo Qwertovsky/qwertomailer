@@ -30,9 +30,35 @@ import com.qwertovsky.mailer.errors.QwertoMailerException;
 
 
 /**
- * Send messages.<br \>
- * Contain setting for connect to mail server: server host, server port, user, password.<br \>
- * Contain setting, that same for many messages: recipientType.
+ * Sends messages.<br \>
+ * Contains setting for connect to mail server: server host, server port, user, password.<br \>
+ * 
+ * <p>For example:</p>
+ * <pre class="code">
+ * //simple text message
+ * Hello, $name.
+ * Introduces a new tariff plan $tariff.</pre>
+ * 
+ * <pre class="code">
+ * //and code
+ * MessageContent message = new MessageContent(new File("message.eml"));
+ * message.setAddressFrom("Company", "sender@company.com", "utf-8");
+ * message.setSubject("New tariff $tariff");
+ * 
+ * //parameters same for all recipients
+ * String[] parametersHeaders = new String[]{"tariff"};
+ * String[] parameters = new String[]{"Super 146"};
+ * message.setParameters(parametersHeaders, parameters);
+ * message.addAttachment(new File("super146.pdf"));
+ * 
+ * //person parameters
+ * parametersHeaders = new String[]{"email1", "name"};
+ * List<String[]> personParameters = new ArrayList<String[]>();
+ * personParameters.add(new String[]{"abon16545@gmail.com", "John Doe"});
+ * personParameters.add(new String[]{"abon2111@gmail.com", "Mr.X"});
+ * Sender sender = new Sender("smtp.company.com", 25, "login", "password", "Company");
+ * sender.send(message, parametersHeaders, personParameters);</pre>
+ * 
  * @author Qwertovsky
  *
  */
@@ -121,6 +147,7 @@ public class Sender
 	/**
 	 * 
 	 * Send personal messages to recipients
+	 * <br />New message for each address
 	 * @param messageContent message content
 	 * @param emailsTo list of recipients
 	 * @throws QwertoMailerException Message is null
@@ -141,6 +168,7 @@ public class Sender
 	/**
 	 * 
 	 * Send personal messages to recipients
+	 * <br />New message for each address
 	 * <br />If {@code haltOnFailure} is true and bad emails present
 	 * , throw {@link QwertoMailerException}. Default value of  {@code haltOnFailure} is false.
 	 * @param messageContent message content
@@ -219,6 +247,8 @@ public class Sender
 	/**
 	 * Send messages. One array of parameters - one message.
 	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />One message for parameters array. If array contains more than one addresses
+	 * , will be created one message with several addresses in field TO:
 	 * @param messageContent message content
 	 * @param personParamHeaders headers of parameters
 	 * @param personParameters list of parameters
@@ -240,6 +270,8 @@ public class Sender
 	/**
 	 * Send messages. One array of parameters - one message.
 	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />One message for parameters array. If array contains more than one addresses
+	 * , will be created one message with several addresses in field TO:
 	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
 	 * , throw {@link QwertoMailerException}. Default value of  {@code haltOnFailure} is false.
 	 * @param messageContent message content
@@ -295,6 +327,8 @@ public class Sender
 	/**
 	 * Send messages. One array of parameters - one message.
 	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />One message for parameters array. If array contains more than one addresses
+	 * , will be created one message with several addresses in field TO:
 	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
 	 * , throw {@link QwertoMailerException}
 	 * @param messageContent message content
@@ -317,6 +351,8 @@ public class Sender
 	/**
 	 * Send messages. One array of parameters - one message.
 	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />One message for parameters array. If array contains more than one addresses
+	 * , will be created one message with several addresses in field TO:
 	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
 	 * , throw {@link QwertoMailerException}. Default value of  {@code haltOnFailure} is false.
 	 * @param messageContent message content

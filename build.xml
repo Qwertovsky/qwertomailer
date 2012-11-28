@@ -98,7 +98,8 @@
 			splitindex="true"
 			use="true"
 			version="true"
-			noqualifier="all" />
+			noqualifier="all"
+			stylesheetfile="docs/style.css" />
 	</target>
 	
 	<target name="build" depends="test,javadoc">

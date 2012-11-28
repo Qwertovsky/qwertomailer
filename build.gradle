@@ -63,6 +63,8 @@ jar
 javadoc
 {
 	options.noQualifiers("all")
+	options.author(true)
+	options.stylesheetFile(file('docs/style.css'))
 }
 
 task jarSrc(type: Jar)\

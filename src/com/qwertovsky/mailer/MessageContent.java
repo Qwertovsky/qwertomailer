@@ -42,9 +42,23 @@ import com.qwertovsky.mailer.errors.QwertoMailerException;
 
 /**
  * Message with content, content type, charset
- * , contentTransferEncoding, subject and sender address
+ * , contentTransferEncoding, subject and address 'From:'
+ * 
+ * <p>For example:</p>
+ * <pre class="code">
+ * //simple text message
+ * MessageContent message = new MessageContent(
+ * 	"Message text", "text/plain", "Subject", "utf-8");
+ * message.setAddressFrom("Company", "sender@company.com", "utf-8");</pre>
+ * 
+ * <pre class="code">
+ * //html message with alternative part
+ * MessageContent message = new MessageContent(
+ *	"<html>HTML message</html>", "text/html", "Subject", "utf-8");
+ * message.setAlternativeText("Text message", "utf-8");
+ * message.setAddressFrom("Company", "sender@company.com", "utf-8");</pre>
+ * 
  * @author Qwertovsky
- *
  */
 public class MessageContent
 {
@@ -1003,8 +1017,9 @@ public class MessageContent
 	//--------------------------------------------
 	/**
 	 * Put inline parameters in message
-	 * <br /> If header specified, but relevant parameter is null
+	 * <br /> If header specified (ex. $header), but relevant parameter is null
 	 *  - $header will be replaced to empty string
+	 *  
 	 * @param headers array of parameter's headers
 	 * @param parameters array of parameters
 	 * @throws IOException
@@ -1039,7 +1054,7 @@ public class MessageContent
 	//--------------------------------------------
 	/**
 	 * Put inline parameters in message
-	 * <br /> If header specified, but relevant parameter is null
+	 * <br /> If header specified (ex. $header), but relevant parameter is null
 	 *  - $header will be replaced to empty string
 	 * @param parameters map of parameters
 	 * @throws IOException
