@@ -60,6 +60,11 @@ jar
 	
 }
 
+javadoc
+{
+	options.noQualifiers("all")
+}
+
 task jarSrc(type: Jar)\
 {
 	archiveName = "$project.name"+"-$jar.gitVersion"+"-src.jar"

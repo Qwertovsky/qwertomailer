@@ -97,7 +97,8 @@
 			sourcepath="src"
 			splitindex="true"
 			use="true"
-			version="true" />
+			version="true"
+			noqualifier="all" />
 	</target>
 	
 	<target name="build" depends="test,javadoc">
