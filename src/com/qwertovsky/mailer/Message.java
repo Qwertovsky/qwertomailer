@@ -11,11 +11,11 @@ import javax.mail.internet.MimeMessage;
  * @author Qwertovsky
  *
  */
-class Message extends MimeMessage
+public class Message extends MimeMessage
 {
 	private Map<String, String> parameters;
 		
-	public Message(Session session)
+	protected Message(Session session)
 	{
 		super(session);
 	}
@@ -33,13 +33,13 @@ class Message extends MimeMessage
 	}
 	
 	//--------------------------------------------
-	public void setParameters(Map<String, String> parametersMap)
+	protected void setParameters(Map<String, String> parametersMap)
 	{
 		parameters = parametersMap;
 	}
 	
 	//--------------------------------------------
-	public void setParameters(String[] headers, String[] parametersArray)
+	protected void setParameters(String[] headers, String[] parametersArray)
 	{
 		parameters = new HashMap<String, String>();
 		for(int i = 0; i < headers.length; i++)
