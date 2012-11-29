@@ -51,11 +51,12 @@ jar
 	
 	//jar name
 	archiveName = "$project.name"+"-$gitVersion"+".jar"
+	archiveName = archiveName.toLowerCase()
 	
 	manifest
 	{
 		def manifestClasspath = configurations.runtime.collect { "lib/"+it.getName() }.join(' ')
-		attributes 'Main-Class': 'com.qwertovsky.mailer.Mailer','Class-Path': ". $manifestClasspath", 'Built-Date': "$today", "Implementation-Version":"$gitVersion $gitDate"
+		attributes 'Main-Class': 'com.qwertovsky.mailer.Mailer','Class-Path': "$manifestClasspath", 'Built-Date': "$today", "Implementation-Version":"$gitVersion $gitDate"
 	}
 	
 }
@@ -70,6 +71,7 @@ javadoc
 task jarSrc(type: Jar)\
 {
 	archiveName = "$project.name"+"-$jar.gitVersion"+"-src.jar"
+	archiveName = archiveName.toLowerCase()
 	manifest
 	{
 		attributes "Built-Date": "$today", "Implementation-Version":"$jar.gitVersion $jar.gitDate"
@@ -81,6 +83,7 @@ task jarDoc(type: Jar)\
 {
 	dependsOn 'javadoc'
 	archiveName = "$project.name"+"-$jar.gitVersion"+"-javadoc.jar"
+	archiveName = archiveName.toLowerCase()
 	manifest
 	{
 		attributes "Built-Date": "$today", "Implementation-Version":"$jar.gitVersion $jar.gitDate"
@@ -92,6 +95,7 @@ task zip(type: Zip)\
 {     
  	dependsOn 'jar','jarSrc','jarDoc'
 	archiveName = "$project.name"+"-$jar.gitVersion"+".zip"
+	archiveName = archiveName.toLowerCase()
 	from(jar.outputs.files){into('/')}
 	from(jarSrc.outputs.files){into('/')}
 	from(jarDoc.outputs.files){into('/')}

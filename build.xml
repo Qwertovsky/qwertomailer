@@ -138,7 +138,7 @@
         <jar destfile="${distrDir}/qwertomailer-${git_ver}.jar">
             <manifest>
                 <attribute name="Main-Class" value="com.qwertovsky.mailer.Mailer"/>
-                <attribute name="Class-Path" value=". ${jar-classpath}" />
+                <attribute name="Class-Path" value="${jar-classpath}" />
 				<attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
             </manifest>
