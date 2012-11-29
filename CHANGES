@@ -1,6 +1,5 @@
-Changes from 0.8.14 to 0.8.x
-============================
-
+Changes from 0.8.14 to 0.9
+==========================
 Bug fixes
 ---------
 	* MIME type of attachment now detect more correctly
@@ -9,18 +8,21 @@ Bug fixes
 	* NullPointerException when use as console program (if sentMessages is null)
 	* fix SenderParametersTest
 
+Changes
+-------
+	* Sender#getErrorSendMessages rename to #getNotSentMessages
+
 New features
 ------------
 	* Print error messages and settings to log
 	* Add option 'haltOnFailure'. Stop send if bad parameters exist.
 	* Sender#sentMessages() return sent messages
 	* MessageContent#toByteArray() return byte array of message in EML format
-	* Sender#getErrorSendMessages rename to #getNotSentMessages
 	* Add Gradle build file 
 
+	
 Changes from 0.8 to 0.8.14
-============================
-
+==========================
 Bug fixes
 ---------
 	* Name of attachment with no latin symbols
