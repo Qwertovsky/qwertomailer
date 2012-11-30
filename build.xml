@@ -14,19 +14,34 @@
     <target name="config">
         <property name="buildDir" value="build_ant" />
 		<property name="classesDir" value="${buildDir}/classes" />
-		<property name="distrDir" value="${buildDir}/distributions" />
+		<property name="distDir" value="${buildDir}/distributions" />
+		<property name="jarDir" value="${buildDir}/libs" />
 		<property name="docsDir" value="${buildDir}/docs" />
 		<property name="tmpDir" value="${buildDir}/tmp" />
 		<property name="reportDir" value="${buildDir}/reports" />
+		
 		<path id="libPath">
 			<fileset dir="lib" />
 		</path>
+		
 		<path id="runtimeLibPath">
 			<fileset dir="lib">
 				<exclude name="junit*.jar" />
 				<exclude name="subethasmtp*.jar" />
 			</fileset>
 		</path>
+		
+		<exec executable="git" outputproperty="git_ver" logError="true">
+			<arg value="describe" />
+			<arg value="--tags" />
+		</exec>
+		<substring text="${git_ver}" start="1"  property="git_ver" />
+		
+    	<exec executable="git" outputproperty="git_date">
+    		<arg value="show" />
+    		<arg value="-s" />
+    		<arg value="--format=&quot;%ci&quot;" />
+    	</exec>
     </target>
 	
 	<target name="clean" depends="config">
@@ -102,40 +117,18 @@
 			stylesheetfile="docs/style.css" />
 	</target>
 	
-	<target name="build" depends="test,javadoc">
-		<mkdir dir="${distrDir}" />
-		<mkdir dir="${distrDir}/lib" />
-        <copy todir="${distrDir}/lib">
-			<path refid="runtimeLibPath" />
-		</copy>
+	<target name="jar" depends="compile,javadoc">
+		<mkdir dir="${jarDir}" />
 						
-		<path id="build.classpath">
-			<fileset dir="${distrDir}/lib" >
-				<include name="**/*.jar"/>
-			</fileset>
-		</path>
-		
 		<tstamp>
 			<format property="application.build.date" pattern="yyyy-MM-dd HH:mm:ss" />
 		</tstamp>
 		
-		<exec executable="git" outputproperty="git_ver" logError="true">
-			<arg value="describe" />
-			<arg value="--tags" />
-		</exec>
-		<substring text="${git_ver}" start="1"  property="git_ver" />
-		
-    	<exec executable="git" outputproperty="git_date">
-    		<arg value="show" />
-    		<arg value="-s" />
-    		<arg value="--format=&quot;%ci&quot;" />
-    	</exec>
-		
 		<manifestclasspath property="jar-classpath"
-                       jarfile="${distrDir}/qwertomailer-${git_ver}.jar">
-			<classpath refid="build.classpath" />
+                       jarfile="${jarDir}/qwertomailer-${git_ver}.jar">
+			<classpath refid="runtimeLibPath" />
 		</manifestclasspath>
-        <jar destfile="${distrDir}/qwertomailer-${git_ver}.jar">
+        <jar destfile="${jarDir}/qwertomailer-${git_ver}.jar">
             <manifest>
                 <attribute name="Main-Class" value="com.qwertovsky.mailer.Mailer"/>
                 <attribute name="Class-Path" value="${jar-classpath}" />
@@ -145,7 +138,7 @@
             <fileset dir="${classesDir}/main" />
         </jar>
 		
-		<jar destfile="${distrDir}/qwertomailer-${git_ver}-src.jar">
+		<jar destfile="${jarDir}/qwertomailer-${git_ver}-src.jar">
             <manifest>
                 <attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
@@ -153,18 +146,30 @@
             <fileset dir="src" />
         </jar>
 		
-		<jar destfile="${distrDir}/qwertomailer-${git_ver}-javadoc.jar">
+		<jar destfile="${jarDir}/qwertomailer-${git_ver}-javadoc.jar">
             <manifest>
                 <attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
             </manifest>
             <fileset dir="${docsDir}/javadoc" />
 		</jar>
+	</target>
+	
+	<target name="build" depends="test,jar">
 		
-		
-		<zip destfile="${distrDir}/qwertomailer-${git_ver}.zip" 
-			basedir="${distrDir}"
-			excludes="*.zip"
-		/>
-    </target>
+	</target>
+	
+	<target name="zip" depends="jar">
+		<mkdir dir="${distDir}" />
+		<zip destfile="${distDir}/qwertomailer-${git_ver}.zip" 
+			basedir="${jarDir}"
+			excludes="*.zip">
+			<mappedresources>
+			  <path refid="runtimeLibPath"/>
+			  <globmapper from="*" to="lib/*"/>
+			</mappedresources>
+			<file file="CHANGES" />
+			<file file="README.rst" />
+		</zip>
+	</target>
 </project>
