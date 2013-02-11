@@ -1,3 +1,10 @@
+Changes from 0.9 to 0.9.1
+==========================
+Bug fixes
+---------
+	* sentMessages is null
+	* Class-Path of Manifest is wrong
+
 Changes from 0.8.14 to 0.9
 ==========================
 Bug fixes

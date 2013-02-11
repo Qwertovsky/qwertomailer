@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build" name="Build QwertoMailer">
-	<scriptdef name="substring" language="javascript">
+	<scriptdef name="versionNumber" language="javascript">
      <attribute name="text" />
-     <attribute name="start" />
      <attribute name="property" />
      <![CDATA[
        var text = attributes.get("text");
-       var start = attributes.get("start");
-       project.setProperty(attributes.get("property"), text.substring(start));
+       project.setProperty(attributes.get("property"), text.indexOf('v')==0? text.substring(1): text);
      ]]>
 	</scriptdef>
 	
@@ -35,7 +33,7 @@
 			<arg value="describe" />
 			<arg value="--tags" />
 		</exec>
-		<substring text="${git_ver}" start="1"  property="git_ver" />
+		<versionNumber text="${git_ver}" property="git_ver" />
 		
     	<exec executable="git" outputproperty="git_date">
     		<arg value="show" />
@@ -124,14 +122,20 @@
 			<format property="application.build.date" pattern="yyyy-MM-dd HH:mm:ss" />
 		</tstamp>
 		
-		<manifestclasspath property="jar-classpath"
-                       jarfile="${jarDir}/qwertomailer-${git_ver}.jar">
-			<classpath refid="runtimeLibPath" />
-		</manifestclasspath>
-        <jar destfile="${jarDir}/qwertomailer-${git_ver}.jar">
+		<pathconvert property="manifest.classpath" pathsep=" ">
+		  <path refid="runtimeLibPath"/>
+		  <mapper>
+			<chainedmapper>
+			   <flattenmapper/>
+			   <globmapper from="*.jar" to="lib/*.jar"/>
+			</chainedmapper>
+		  </mapper>
+		</pathconvert>
+		
+		<jar destfile="${jarDir}/qwertomailer-${git_ver}.jar">
             <manifest>
                 <attribute name="Main-Class" value="com.qwertovsky.mailer.Mailer"/>
-                <attribute name="Class-Path" value="${jar-classpath}" />
+                <attribute name="Class-Path" value="${manifest.classpath}" />
 				<attribute name="Built-Date" value="${application.build.date}"/> 
 				<attribute name="Implementation-Version" value="${git_ver} ${git_date}" />
             </manifest>

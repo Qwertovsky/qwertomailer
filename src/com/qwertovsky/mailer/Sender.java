@@ -236,6 +236,7 @@ public class Sender
 		//send messages
 		logger.info("Start sending: " + messages.size() + " messages");
 		notSentMessages = new ArrayList<Message>();
+		sentMessages = new ArrayList<Message>();
 		for(Message message:messages)
 		{
 			sendMessage(message);
@@ -466,6 +467,7 @@ public class Sender
 		//send messages
 		logger.info("Start sending");
 		notSentMessages = new ArrayList<Message>();
+		sentMessages = new ArrayList<Message>();
 		for(Message message:messages)
 		{
 			sendMessage(message);
@@ -528,9 +530,10 @@ public class Sender
 				{
 					sb.append("error get recipients");
 				}
-				sentMessages.add(message);
 				logger.trace("Message " + messageId +" has been send to: " + sb.toString());
 			}
+			
+			sentMessages.add(message);
 		} catch (Exception me)
 		{
 			//log about not send message
