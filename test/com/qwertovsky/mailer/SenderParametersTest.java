@@ -255,6 +255,7 @@ public class SenderParametersTest
 		parameters.put("param", "parameter");
 		parameters.put("email3", " address5@domain ");
 		parameters.put("email4", "address6@domain");
+		parameters.put("person", "AddressPerson");
 		
 		Set<InternetAddress> recipients = sender.getRecipientsList(parameters);
 		if(recipients == null || recipients.size() != 6)
@@ -265,6 +266,11 @@ public class SenderParametersTest
 		assertTrue("incorrect getRecipientsList",recipients.contains(new InternetAddress("address4@domain")));
 		assertTrue("incorrect getRecipientsList",recipients.contains(new InternetAddress("address5@domain")));
 		assertTrue("incorrect getRecipientsList",recipients.contains(new InternetAddress("address6@domain")));
+		for(InternetAddress adr:recipients)
+		{
+			assertTrue("incorrect getRecipientsList: personal"
+					,adr.getPersonal().equals("AddressPerson"));
+		}
 		
 		wiser.stop();
 	}

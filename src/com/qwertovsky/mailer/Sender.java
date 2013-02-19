@@ -2,6 +2,7 @@ package com.qwertovsky.mailer;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -247,7 +248,9 @@ public class Sender
 	//--------------------------------------------
 	/**
 	 * Send messages. One array of parameters - one message.
-	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />Headers must contain "email*". Headers may contain "person" and "attach*".
+	 * <br />Header "person" is a part of address (Person &lt;Email&gt;). One "person" header applies 
+	 * for all "email*".
 	 * <br />One message for parameters array. If array contains more than one addresses
 	 * , will be created one message with several addresses in field TO:
 	 * @param messageContent message content
@@ -270,7 +273,9 @@ public class Sender
 	//--------------------------------------------
 	/**
 	 * Send messages. One array of parameters - one message.
-	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />Headers must contain "email*". Headers may contain "person" and "attach*".
+	 * <br />Header "person" is a part of address (Person &lt;Email&gt;). One "person" header applies 
+	 * for all "email*".
 	 * <br />One message for parameters array. If array contains more than one addresses
 	 * , will be created one message with several addresses in field TO:
 	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
@@ -327,7 +332,9 @@ public class Sender
 	//--------------------------------------------
 	/**
 	 * Send messages. One array of parameters - one message.
-	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />Headers must contain "email*". Headers may contain "person" and "attach*".
+	 * <br />Header "person" is a part of address (Person &lt;Email&gt;). One "person" header applies 
+	 * for all "email*".
 	 * <br />One message for parameters array. If array contains more than one addresses
 	 * , will be created one message with several addresses in field TO:
 	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
@@ -351,7 +358,9 @@ public class Sender
 	//--------------------------------------------
 	/**
 	 * Send messages. One array of parameters - one message.
-	 * <br />Headers must contain "email*". Headers may contain "attach*".
+	 * <br />Headers must contain "email*". Headers may contain "person" and "attach*".
+	 * <br />Header "person" is a part of address (Person &lt;Email&gt;). One "person" header applies 
+	 * for all "email*".
 	 * <br />One message for parameters array. If array contains more than one addresses
 	 * , will be created one message with several addresses in field TO:
 	 * <br />If {@code haltOnFailure} is true and bad emails present or bad parameters present
@@ -653,8 +662,13 @@ public class Sender
 			return null;
 		Set<InternetAddress> recipientsList = new HashSet<InternetAddress>();
 		Set<String> keys = parameters.keySet();
+		String personal = null;
 		for(String header:keys)
 		{
+			if(header.toLowerCase().trim().equals("person"))
+			{
+				personal = parameters.get(header);
+			}
 			if(header.toLowerCase().trim().startsWith("email"))
 			{
 				String emailString = parameters.get(header);
@@ -685,6 +699,16 @@ public class Sender
 		if(recipientsList == null || recipientsList.isEmpty())
 		{
 			return null;
+		}
+		for(InternetAddress address:recipientsList)
+		{
+			try
+			{
+				address.setPersonal(personal);
+			} catch (UnsupportedEncodingException e)
+			{
+				// noting
+			}
 		}
 		return recipientsList;
 	}
