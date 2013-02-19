@@ -15,9 +15,10 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.mail.Address;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.cli.CommandLine;
@@ -219,15 +220,35 @@ class Mailer
 		
 		if(commandLine.hasOption("emailTo"))
 		{
-			String[] emails = commandLine.getOptionValues("emailTo");
-			for(String email:emails)
+			String[] addresses = commandLine.getOptionValues("emailTo");
+			Pattern addressPattern = Pattern.compile("(.+(?=<))?<?([^<>]+)?");
+			for(String address:addresses)
 			{
+				// get email and person
+				Matcher addressMatcher = addressPattern.matcher(address);
+				String personal = null;
+				String email = null;
+				if(addressMatcher.find())
+				{
+					personal = addressMatcher.group(1);
+					email = addressMatcher.group(2);
+				}
 				try
 				{
-					emailsTo.add(new InternetAddress(email));
-				}catch(AddressException ae)
+					if(email != null)
+						email = email.trim();
+					else 
+						continue;
+					if(personal != null)
+					{
+						personal = personal.trim();
+						emailsTo.add(new InternetAddress(email, personal));
+					}
+					else 
+						emailsTo.add(new InternetAddress(email));
+				}catch (Exception e)
 				{
-					logger.warn(email + ":" + ae.getMessage());
+					logger.warn(email + ":" + e.getMessage());
 				}
 			}
 		}
@@ -317,7 +338,7 @@ class Mailer
 		//send message
 		try
 		{
-			if(!emailsTo.isEmpty())
+			if(options.hasOption("emailTo"))
 			{
 				logger.info("Message count for send: " + emailsTo.size());
 				sender.send(message, emailsTo);

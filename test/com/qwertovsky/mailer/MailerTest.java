@@ -4,10 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.mail.BodyPart;
+import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
 
@@ -17,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.junit.Test;
 import org.subethamail.wiser.Wiser;
+import org.subethamail.wiser.WiserMessage;
 
 public class MailerTest
 {
@@ -38,12 +42,13 @@ public class MailerTest
 		loggerCom.setLevel(Level.WARN);
 		
 		wiser = new Wiser(2500);
-		wiser.start();
+		
 	}
 	
 	@Test
 	public void testMain() throws MessagingException, IOException
 	{
+		wiser.start();
 		Mailer.main(new String[]{"-smtpHost", "localhost", "-smtpPort", "2500" 
 				,"-subject", "test subject" 
 				,"-body", "test message"
@@ -201,7 +206,33 @@ public class MailerTest
 		if(wiser.getMessages().size() != 1)
 			fail("incorrect Mailer");
 		
-		
+		wiser.stop();
 	}
-
+	
+	//--------------------------------------------
+	@Test
+	public void testEmails() throws MessagingException
+	{
+		wiser.start();
+		Mailer.main(new String[]{"-smtpHost", "localhost", "-smtpPort", "2500" 
+				,"-subject", "test subject" 
+				,"-body", "test message"
+				,"-emailFrom", "qwertovsky@gmail.com"
+				,"-emailTo", "person <>,person2 <"
+				});
+		List<WiserMessage> messages = wiser.getMessages();
+		for(WiserMessage message: messages)
+		{
+			MimeMessage mimeMessage = message.getMimeMessage();
+			InternetAddress[] addresses = (InternetAddress[]) mimeMessage.getRecipients(RecipientType.TO);
+			for(InternetAddress address:addresses)
+			{
+				String personal = address.getPersonal();
+				if(!personal.contains("person"))
+					fail("incorrect Mailer");
+			}
+		}
+		
+		wiser.stop();
+	}
 }
