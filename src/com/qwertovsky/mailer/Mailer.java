@@ -338,7 +338,7 @@ class Mailer
 		//send message
 		try
 		{
-			if(options.hasOption("emailTo"))
+			if(commandLine.hasOption("emailTo"))
 			{
 				logger.info("Message count for send: " + emailsTo.size());
 				sender.send(message, emailsTo);

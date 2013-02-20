@@ -700,14 +700,17 @@ public class Sender
 		{
 			return null;
 		}
-		for(InternetAddress address:recipientsList)
+		if(personal != null)
 		{
-			try
+			for(InternetAddress address:recipientsList)
 			{
-				address.setPersonal(personal);
-			} catch (UnsupportedEncodingException e)
-			{
-				// noting
+				try
+				{
+					address.setPersonal(personal);
+				} catch (UnsupportedEncodingException e)
+				{
+					// noting
+				}
 			}
 		}
 		return recipientsList;
