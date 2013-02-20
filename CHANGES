@@ -1,3 +1,9 @@
+Changes from 0.9.1 to 0.9.2
+==========================
+Changes
+-------
+	* Add personal part to email address. You may set option -emailTo "Personal <Email@host.com>, Personal2 <Email2@host.com>". Or add new column to csv file - 'PERSON'. It is a reserved column name like 'EMAIL' and 'ATTACH'.
+
 Changes from 0.9 to 0.9.1
 ==========================
 Bug fixes
