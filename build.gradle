@@ -100,6 +100,6 @@ task zip(type: Zip)\
 	from(jarSrc.outputs.files){into('/')}
 	from(jarDoc.outputs.files){into('/')}
 	from(configurations.runtime){into('lib')}
-	from('CHANGES'){into('/')}
-	from('README.rst'){into('/')}
+	from('CHANGELOG.md'){into('/')}
+	from('README.md'){into('/')}
 }

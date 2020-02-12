@@ -172,8 +172,8 @@
 			  <path refid="runtimeLibPath"/>
 			  <globmapper from="*" to="lib/*"/>
 			</mappedresources>
-			<file file="CHANGES" />
-			<file file="README.rst" />
+			<file file="CHANGELOG.md" />
+			<file file="README.md" />
 		</zip>
 	</target>
 </project>
