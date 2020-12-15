@@ -272,7 +272,7 @@ sender.send(message, parametersHeaders, personParameters);
 There are common and personalized parameters.
 					
 # API
-More methods you can find in [Javadoc](https://qwertovsky.com/mailer/docs/)
+More methods you can find in [Javadoc](https://qwertovsky.github.io/qwertomailer/javadoc/)
 
 # Dependencies
 
